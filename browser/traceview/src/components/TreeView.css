@@ -1,26 +1,42 @@
-.tree {
-    --spacing: 1.5rem;
-    --radius: 7px;
-}
-
 .tree li {
     display: block;
     position: relative;
-    padding-left: calc(2 * var(--spacing) - var(--radius) - 2px);
+    /* padding-left: calc(2 * var(--spacing) - var(--radius) - 2px); */
 }
 
 .tree ul {
-    margin-left: calc(var(--radius) - var(--spacing));
-    padding-left: 0;
+    padding: 0px;
+    /* margin-left: calc(var(--radius) - var(--spacing)); */
 }
 
 /* 
 .tree ul li {
     border-left: 2px solid black;
 } */
-
+/* 
 .tree ul li:last-child {
     border-color: transparent;
+} */
+
+.icon {
+    margin-right: 6px;
+    position: relative;
+    top: 4px
+}
+
+.tree-children {
+    margin-left: 25px;
+}
+
+.box {
+    cursor: pointer;
+    padding-top: 0.6em;
+    padding-bottom: 0.6em;
+    padding-left: 1em;
+}
+
+.selected {
+    background-color: #eeddee;
 }
 
 /* 
