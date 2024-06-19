@@ -282,11 +282,17 @@ def trace(
         parent = None
         lock = Lock()
     node = TracingNode(name, kind, inputs, meta, tags, lock=lock)
+    token = _TRACING_STACK.set(parents + (node,))
+    writer = get_current_writer()
     if parent:
         with lock:
             assert parent.state == TracingNodeState.OPEN
             parent.children.append(node)
-    token = _TRACING_STACK.set(parents + (node,))
+        if writer:
+            writer.write_node_in_progress(parent)
+    else:
+        if writer:
+            writer.write_node_in_progress(node)
     try:
         yield node
     except BaseException as e:
@@ -296,6 +302,11 @@ def trace(
         _TRACING_STACK.reset(token)
     with lock:
         node.state = TracingNodeState.FINISHED
+    if writer:
+        if parent:
+            writer.write_node_in_progress(parent)
+        else:
+            writer.write_final_node(node)
 
 
 def with_trace(
@@ -374,3 +385,6 @@ def current_tracing_node(check: bool = True) -> Optional[TracingNode]:
             raise Exception("No current tracing")
         return None
     return stack[-1]
+
+
+from .writer import get_current_writer

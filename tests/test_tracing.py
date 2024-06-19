@@ -31,6 +31,7 @@ def test_tracing_node_basic():
         assert c2.state == TracingNodeState.ERROR
         assert func1(10, 20) == 30
     assert c.state == TracingNodeState.FINISHED
+    print(c.to_dict())
     output = strip_tree(c.to_dict())
     #  print(json.dumps(output, indent=2))
     del output["children"][1]["error"]["traceback"]["frames"][0]
