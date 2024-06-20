@@ -175,6 +175,17 @@ class TracingNode:
             self.children.append(event)
         return event
 
+    def add_meta(self, name: str, value: object):
+        """
+        Add a named metadata entry
+
+        If an input of the same name already exists, it is overriden
+        """
+        with self._lock:
+            if self.meta is None:
+                self.meta = {}
+            self.meta[name] = serialize_with_type(value)
+
     def add_input(self, name: str, value: object):
         """
         Add a named input value to the tracing node.

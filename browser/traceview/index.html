@@ -5,11 +5,92 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vite + React + TS</title>
+  <title>TraceView</title>
   <script>
     function start() {
       var node =
-        { 'name': 'Test', 'uid': 'bbf4af7719b745b28a48814d3067c0df', 'kind': 'root', 'children': [{ 'name': 'c1', 'uid': '9beb2a9a7da749bd9c30aa2b15e2effa', 'result': 'blabla', 'start_time': '2024-06-19T15:49:33.040741' }, { 'name': 'c2', 'uid': '5e47600a4a6046d6adee14ef137e6546', 'state': 'error', 'error': { '_type': 'TestException', 'message': 'Ah well', 'traceback': { '_type': '$traceback', 'frames': [{ 'name': 'trace', 'filename': '/home/spirali/projects/nicetrace/src/nicetrace/tracing.py', 'lineno': 297, 'line': 'yield node' }, { 'name': 'test_tracing_node_basic', 'filename': '/home/spirali/projects/nicetrace/tests/test_tracing.py', 'lineno': 30, 'line': 'raise TestException("Ah well")' }] } }, 'start_time': '2024-06-19T15:49:33.040782' }, { 'name': 'func1', 'uid': '6dc9b9fa3740475f8df583d4cc93af83', 'kind': 'call', 'result': 30, 'inputs': { 'param1': 10, 'param2': 20 }, 'children': [{ 'name': '<lambda>', 'uid': '49b88f66c1b54107a2b2b55b2e5ad52e', 'kind': 'call', 'result': 'abc', 'inputs': { 'x': 'abc' }, 'start_time': '2024-06-19T15:49:33.041466' }, { 'name': 'myfn', 'uid': '2874e108d9084e39ad90cfb4b049b705', 'kind': 'call', 'result': 'abc', 'inputs': { 'x': 'abc' }, 'start_time': '2024-06-19T15:49:33.041646' }], 'start_time': '2024-06-19T15:49:33.041398' }], 'start_time': '2024-06-19T15:49:33.040705', 'version': '4.0' };
+      {
+        "name": "Experiment",
+        "uid": "P17Zq6TObX",
+        "children": [
+          {
+            "name": "Query gpt-3.5-turbo",
+            "uid": "VMXoKDdAGa",
+            "kind": "query",
+            "output": "Blue and green",
+            "inputs": {
+              "prompt": "Human: Name two colors",
+              "config": {
+                "ls_provider": "openai",
+                "ls_model_name": "gpt-3.5-turbo",
+                "ls_model_type": "chat",
+                "ls_temperature": 0.7
+              }
+            },
+            "start_time": "2024-06-20T19:55:52.203261",
+            "end_time": "2024-06-20T19:55:52.897291",
+            "meta": {
+              "icon": "query",
+              "counters": {
+                "input_tokens": 10,
+                "output_tokens": 3
+              }
+            }
+          },
+          {
+            "name": "Query gpt-3.5-turbo",
+            "uid": "7OWxIWyweL",
+            "kind": "query",
+            "output": "Blue",
+            "inputs": {
+              "prompt": "Human: Name one color",
+              "config": {
+                "ls_provider": "openai",
+                "ls_model_name": "gpt-3.5-turbo",
+                "ls_model_type": "chat",
+                "ls_temperature": 0.7
+              }
+            },
+            "start_time": "2024-06-20T19:55:52.898199",
+            "end_time": "2024-06-20T19:55:53.458781",
+            "meta": {
+              "icon": "query",
+              "counters": {
+                "input_tokens": 10,
+                "output_tokens": 1
+              }
+            }
+          },
+          {
+            "name": "Query mistralai/Mistral-7B-Instruct-v0.3",
+            "uid": "f3IzJrPXuE",
+            "kind": "query",
+            "output": " Blue and Red.",
+            "inputs": {
+              "prompt": "Human: Name two colors",
+              "config": {
+                "ls_provider": "together",
+                "ls_model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+                "ls_model_type": "chat",
+                "ls_temperature": 0.7
+              }
+            },
+            "start_time": "2024-06-20T19:55:53.548566",
+            "end_time": "2024-06-20T19:55:54.718048",
+            "meta": {
+              "icon": "query",
+              "counters": {
+                "input_tokens": 9,
+                "output_tokens": 5
+              }
+            }
+          }
+        ],
+        "start_time": "2024-06-20T19:55:52.131526",
+        "end_time": "2024-06-20T19:55:54.718121",
+        "version": "4"
+      };
+
       window.mountTraceView(document.getElementById("root"), node)
     }
   </script>

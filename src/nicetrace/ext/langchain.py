@@ -25,19 +25,16 @@ try:
             metadata: Optional[dict[str, Any]] = None,
             **kwargs: Any,
         ) -> Any:
-            kwargs = serialized["kwargs"]
             inputs = {}
             if len(prompts) == 1:
                 inputs["prompt"] = prompts[0]
             else:
                 inputs["prompts"] = prompts
-            inputs["config"] = (
-                metadata  # {"name": serialized["name"], "model_name": kwargs["model_name"], "temperature": kwargs["temperature"]}
-            )
+            inputs["config"] = metadata
             pair = start_trace_block(
-                f"Query {kwargs['model_name']}", kind="query", inputs=inputs
+                f"Query {metadata['ls_model_name']}", kind="query", inputs=inputs, meta={"icon": "query"}
             )
-            self.running_nodes[run_id] = pair
+            self.running_nodes[run_id.hex] = pair
 
         def on_llm_end(
             self,
@@ -48,12 +45,17 @@ try:
             tags: Optional[list[str]] = None,
             **kwargs: Any,
         ) -> None:
-            node, token = self.running_nodes.pop(run_id)
+            print(run_id)
+            print(response)
+            node, token = self.running_nodes.pop(run_id.hex)
             generations = [g.text for gg in response.generations for g in gg]
             if len(generations) == 1:
                 node.set_output(generations[0])
             else:
                 node.set_output(generations)
+            usage = response.llm_output["token_usage"]
+            counters = {"input_tokens": usage["prompt_tokens"], "output_tokens": usage["completion_tokens"]}
+            node.add_meta("counters", counters)
             end_trace_block(node, token, None)
 
         def on_llm_error(
@@ -65,7 +67,7 @@ try:
             tags: Optional[list[str]] = None,
             **kwargs: Any,
         ) -> None:
-            node, token = self.running_nodes.pop(run_id)
+            node, token = self.running_nodes.pop(run_id.hex)
             end_trace_block(node, token, None)
 except ImportError:
     # Langchain not installed
