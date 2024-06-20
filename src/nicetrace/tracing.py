@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 from .utils.ids import generate_uid
 from .serialization import Data, serialize_with_type
 
-TRACING_FORMAT_VERSION = "4.0"
+TRACING_FORMAT_VERSION = "4"
 
 _TRACING_STACK = contextvars.ContextVar("_TRACING_STACK", default=())
 
@@ -62,8 +62,8 @@ class TracingNode:
         c.add_input("x", 1)
         y = do_some_computation(x=1)
         # The tracing node would also note any exceptions raised here
-        # (letting it propagate upwards), but a result needs to be set manually:
-        c.set_result(y)
+        # (letting it propagate upwards), but an output needs to be set manually:
+        c.set_output(y)
     # <- Here the tracing node is already closed.
     ```
     """
@@ -75,7 +75,7 @@ class TracingNode:
         inputs: Optional[Dict[str, Any]] = None,
         meta: Optional[Dict[str, Data]] = None,
         tags: Optional[Sequence[str | Tag]] = None,
-        result=None,
+        output=None,
         lock=None,
     ):
         """
@@ -86,7 +86,7 @@ class TracingNode:
         - `tags` - A list of tags for the tracing node
         - `directory` - Whether to create a sub-directory for the tracing node while storing.
           This allows you to split the stored data across multiple files.
-        - `result` - The result value of the tracing node, if it has already been computed.
+        - `output` - The output value of the tracing node, if it has already been computed.
         """
 
         if inputs:
@@ -97,8 +97,8 @@ class TracingNode:
         if meta:
             meta = serialize_with_type(meta)
 
-        if result:
-            result = serialize_with_type(result)
+        if output:
+            output = serialize_with_type(output)
 
         if tags is not None:
             tags = [Tag.into_tag(tag) for tag in tags]
@@ -106,16 +106,16 @@ class TracingNode:
         self.name = name
         self.kind = kind
         self.inputs = inputs
-        self.result = result
+        self.output = output
         self.error = None
         self.state: TracingNodeState = (
-            TracingNodeState.OPEN if result is None else TracingNodeState.FINISHED
+            TracingNodeState.OPEN if output is None else TracingNodeState.FINISHED
         )
         self.uid = generate_uid()
         self.children: List[TracingNode] = []
         self.tags: List[Tag] | None = tags
-        self.start_time = datetime.datetime.now() if result is None else None
-        self.end_time = None if result is None else datetime.datetime.now()
+        self.start_time = datetime.datetime.now() if output is None else None
+        self.end_time = None if output is None else datetime.datetime.now()
         self.meta = meta
         self._lock = lock
         # self._token = None
@@ -125,7 +125,7 @@ class TracingNode:
         result = {"name": self.name, "uid": self.uid}
         if self.state != TracingNodeState.FINISHED:
             result["state"] = self.state.value
-        for name in ["kind", "result", "error", "tags"]:
+        for name in "kind", "output", "error", "tags":
             value = getattr(self, name)
             if value is not None:
                 result[name] = value
@@ -170,7 +170,7 @@ class TracingNode:
         meta: Optional[Dict[str, Data]] = None,
         tags: Optional[List[str | Tag]] = None,
     ) -> "TracingNode":
-        event = TracingNode(name=name, kind=kind, result=data, meta=meta, tags=tags)
+        event = TracingNode(name=name, kind=kind, output=data, meta=meta, tags=tags)
         with self._lock:
             self.children.append(event)
         return event
@@ -203,12 +203,12 @@ class TracingNode:
             for name, value in inputs.items():
                 self.inputs[name] = serialize_with_type(value)
 
-    def set_result(self, value: Any):
+    def set_output(self, value: Any):
         """
-        Set the result value of the tracing node.
+        Set the output value of the tracing node.
         """
         with self._lock:
-            self.result = serialize_with_type(value)
+            self.output = serialize_with_type(value)
 
     def set_error(self, exc: Any):
         """
@@ -266,14 +266,13 @@ class TracingNode:
     #     display(HTML(html))
 
 
-@contextmanager
-def trace(
+def start_trace_block(
     name: str,
     kind: Optional[str] = None,
     inputs: Optional[Dict[str, Any]] = None,
     meta: Optional[Dict[str, Data]] = None,
     tags: Optional[Sequence[str | Tag]] = None,
-):
+) -> tuple[TracingNode, Any]:
     parents = _TRACING_STACK.get()
     if parents:
         parent = parents[-1]
@@ -293,20 +292,43 @@ def trace(
     else:
         if writer:
             writer.write_node_in_progress(node)
+    return node, token
+
+
+def end_trace_block(node, token, error):
+    _TRACING_STACK.reset(token)
+    with node._lock:
+        if node.state == TracingNodeState.OPEN:
+            if error is None:
+                node.state = TracingNodeState.FINISHED
+            else:
+                node.state = TracingNodeState.ERROR
+                node.error = serialize_with_type(error)
+        node.end_time = datetime.datetime.now()
+    writer = get_current_writer()
+    if writer:
+        parents = _TRACING_STACK.get()
+        if parents:
+            writer.write_node_in_progress(parents[0])
+        else:
+            writer.write_final_node(node)
+
+
+@contextmanager
+def trace(
+    name: str,
+    kind: Optional[str] = None,
+    inputs: Optional[Dict[str, Any]] = None,
+    meta: Optional[Dict[str, Data]] = None,
+    tags: Optional[Sequence[str | Tag]] = None,
+):
+    node, token = start_trace_block(name, kind, inputs, meta, tags)
     try:
         yield node
     except BaseException as e:
-        node.set_error(e)
+        end_trace_block(node, token, e)
         raise e
-    finally:
-        _TRACING_STACK.reset(token)
-    with lock:
-        node.state = TracingNodeState.FINISHED
-    if writer:
-        if parent:
-            writer.write_node_in_progress(parent)
-        else:
-            writer.write_final_node(node)
+    end_trace_block(node, token, None)
 
 
 def with_trace(
@@ -315,7 +337,7 @@ def with_trace(
     """
     A decorator wrapping every execution of the function in a new `TracingNode`.
 
-    The `inputs`, `result`, and `error` (if any) are set automatically.
+    The `inputs`, `output`, and `error` (if any) are set automatically.
     Note that you can access the created tracing in your function using `current_tracing_node`.
 
     *Usage:*
@@ -345,9 +367,9 @@ def with_trace(
                 inputs=binding.arguments,
                 tags=tags,
             ) as node:
-                result = func(*a, **kw)
-                node.set_result(result)
-                return result
+                output = func(*a, **kw)
+                node.set_output(output)
+                return output
 
         async def async_wrapper(*a, **kw):
             binding = signature.bind(*a, **kw)
@@ -356,9 +378,9 @@ def with_trace(
                 kind=kind or "acall",
                 inputs=binding.arguments,
             ) as node:
-                result = await func(*a, **kw)
-                node.set_result(result)
-                return result
+                output = await func(*a, **kw)
+                node.set_output(output)
+                return output
 
         if inspect.iscoroutinefunction(func):
             return async_wrapper

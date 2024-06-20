@@ -22,7 +22,7 @@ def test_tracing_node_basic():
         assert c.state == TracingNodeState.OPEN
         assert current_tracing_node() is c
         with trace("c1") as c2:
-            c2.set_result("blabla")
+            c2.set_output("blabla")
         assert c2.state == TracingNodeState.FINISHED
         with pytest.raises(TestException, match="well"):
             with trace("c2") as c2:
@@ -39,7 +39,7 @@ def test_tracing_node_basic():
         "name": "Test",
         "kind": "root",
         "children": [
-            {"name": "c1", "result": "blabla"},
+            {"name": "c1", "output": "blabla"},
             {
                 "name": "c2",
                 "state": "error",
@@ -62,19 +62,19 @@ def test_tracing_node_basic():
                 "name": "func1",
                 "kind": "call",
                 "inputs": {"param1": 10, "param2": 20},
-                "result": 30,
+                "output": 30,
                 "children": [
                     {
                         "name": "<lambda>",
                         "kind": "call",
                         "inputs": {"x": "abc"},
-                        "result": "abc",
+                        "output": "abc",
                     },
                     {
                         "name": "myfn",
                         "kind": "call",
                         "inputs": {"x": "abc"},
-                        "result": "abc",
+                        "output": "abc",
                     },
                 ],
             },
@@ -151,14 +151,14 @@ def test_tracing_dataclass():
 
     with trace("root") as c:
         c.add_input("my_input", MyData("Bob", 25))
-        c.set_result(MyData("Alice", 26))
+        c.set_output(MyData("Alice", 26))
     assert c.state == TracingNodeState.FINISHED
     # with_new_context("ch3", lambda d: f"Hello {d.name}", Data(name="LLM"))
     output = strip_tree(c.to_dict())
     assert output == {
         "name": "root",
         "inputs": {"my_input": {"_type": "MyData", "age": 25, "name": "Bob"}},
-        "result": {"name": "Alice", "age": 26, "_type": "MyData"},
+        "output": {"name": "Alice", "age": 26, "_type": "MyData"},
     }
 
 
@@ -196,13 +196,13 @@ def test_tracing_node_add_inputs():
 
 def test_tracing_node_lists():
     with trace("root", inputs={"a": [1, 2, 3]}) as c:
-        c.set_result(["A", ["B", "C"]])
+        c.set_output(["A", ["B", "C"]])
     output = strip_tree(c.to_dict())
     print(output)
     assert output == {
         "name": "root",
         "inputs": {"a": [1, 2, 3]},
-        "result": ["A", ["B", "C"]],
+        "output": ["A", ["B", "C"]],
     }
 
 
@@ -217,7 +217,7 @@ def test_tracing_node_events():
             {
                 "name": "Message to Alice",
                 "kind": "message",
-                "result": {"x": 10, "y": 20},
+                "output": {"x": 10, "y": 20},
             }
         ],
     }
@@ -243,12 +243,12 @@ async def test_async_tracing_node():
             {
                 "name": "make_queries",
                 "kind": "acall",
-                "result": "a",
+                "output": "a",
             },
             {
                 "name": "make_queries",
                 "kind": "acall",
-                "result": "a",
+                "output": "a",
             },
         ],
     }
@@ -288,7 +288,7 @@ def test_find_tracing_nodes():
         with trace("child"):
             with trace("child3") as c3:
                 c3.add_tag("x")
-                c3.set_result("abc")
+                c3.set_output("abc")
         with trace("child2", tags=[Tag("x")]) as c4:
             pass
 
@@ -296,13 +296,13 @@ def test_find_tracing_nodes():
 
 
 @pytest.mark.parametrize(
-    "result",
+    "output",
     [pytest.param(None, id="None"), pytest.param("", id='""'), 0, 1, "abc", {"x": 10}],
 )
-def test_to_dict(result):
+def test_to_dict(output):
     with trace("root") as c:
-        c.set_result(result)
-    assert c.result == result
+        c.set_output(output)
+    assert c.output == output
 
     c_dict = c.to_dict()
     for key, c_dict_val in c_dict.items():
