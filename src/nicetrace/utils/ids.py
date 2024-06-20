@@ -1,5 +1,8 @@
-import uuid
+import random
+import string
+
+chars = string.ascii_letters + string.digits
 
 
 def generate_uid() -> str:
-    return uuid.uuid4().hex
+    return "".join(random.choice(chars) for _ in range(10))

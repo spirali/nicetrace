@@ -1,3 +1,5 @@
+from .html.statichtml import get_static_html
+from .html.staticfiles import copy_static_files
 from nicetrace import TraceWriter, TracingNode
 import uuid
 import os
@@ -26,6 +28,8 @@ class FileWriter(TraceWriter):
         self.path = path
         self.json = json
         self.html = html
+        if html:
+            self.html_files = copy_static_files(path)
 
     def write_node_in_progress(self, node: TracingNode):
         self._write_node(node)
@@ -41,5 +45,8 @@ class FileWriter(TraceWriter):
         json_data = json.dumps(node_as_dict)
         if self.json:
             _write_file(os.path.join(self.path, f"trace-{node.uid}.json"), json_data)
-
-
+        if self.html:
+            _write_file(
+                os.path.join(self.path, f"trace-{node.uid}.html"),
+                get_static_html(json_data, self.html_files),
+            )

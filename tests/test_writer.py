@@ -13,7 +13,7 @@ def test_writer_contextvar(tmp_path):
     assert get_current_writer() is None
 
 
-def test_file_writer(tmp_path):
+def test_file_writer_json(tmp_path):
     dir = tmp_path / "files"
 
     def read(node):
@@ -49,3 +49,21 @@ def test_file_writer(tmp_path):
         assert "state" not in data
         assert data["children"][0]["name"] == "First child"
         assert "state" not in data["children"][0]
+
+
+def test_file_writer(tmp_path):
+    dir = tmp_path / "files"
+
+    def read(node):
+        with open(dir / f"trace-{node.uid}.html") as f:
+            return f.read()
+
+    with FileWriter(dir, html=True) as storage:
+        with trace("Hello") as node:
+            with trace("First child"):
+                pass
+
+    html = read(node)
+    assert html.startswith("<!doctype html>\n<html")
+    assert html.rstrip().endswith("</html>")
+    assert '"name": "First child"' in html

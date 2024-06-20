@@ -10,7 +10,6 @@ _TRACE_WRITER: ContextVar[Optional["TraceWriter"]] = ContextVar(
 
 
 class TraceWriter(ABC):
-
     @abstractmethod
     def write_node_in_progress(self, node: TracingNode):
         raise NotImplementedError()
