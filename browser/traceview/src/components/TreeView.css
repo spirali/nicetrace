@@ -6,6 +6,7 @@
 
 .tree ul {
     padding: 0px;
+    padding-left: 1em;
     /* margin-left: calc(var(--radius) - var(--spacing)); */
 }
 
@@ -21,7 +22,7 @@
 .icon {
     margin-right: 6px;
     position: relative;
-    top: 4px
+    top: 2px
 }
 
 .tree-children {
@@ -37,6 +38,15 @@
 
 .selected {
     background-color: #dddddd;
+}
+
+.nt-node-icon {
+    margin-right: 0.3em;
+}
+
+.nt-node-duration {
+    font-size: 75%;
+    color: #aaa;
 }
 
 /* 

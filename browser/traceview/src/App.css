@@ -4,10 +4,6 @@
   background-color: #f0f0f0;
 }
 
-.content {
-  width: 80%;
-}
-
 .container {
   display: flex;
   min-height: 100vh;
@@ -22,4 +18,13 @@
 body {
   padding: 0;
   margin: 0;
+}
+
+.nt-actions {
+  margin: 1.5em;
+}
+
+.nt-main-content {
+  margin-left: 1.5em;
+  width: 80%;
 }

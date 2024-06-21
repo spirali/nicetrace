@@ -3,10 +3,15 @@ import './App.css'
 import { TreeView } from './components/TreeView'
 import { TracingNode } from './model/Node'
 import { NodeDetail } from './components/NodeDetail';
+import { createNodeIcon } from './common/icons';
 
 export interface TreeState {
   opened: Set<string>
   selected: TracingNode
+}
+
+function Actions() {
+  // return <div className="nt-actions"><button>Expand all descendants</button><button>Callapse descendants</button></div>;
 }
 
 function App(props: { root: TracingNode }) {
@@ -23,7 +28,11 @@ function App(props: { root: TracingNode }) {
   return (
     <div className="container">
       <div className='panel'><TreeView root={props.root} treeState={state} setTreeState={setState} /></div>
-      <div className='content'><NodeDetail node={state.selected} /></div>
+      <div className='nt-main-content'>
+        <h1>{createNodeIcon(state.selected)}{state.selected.name}</h1>
+        {/* <Actions /> */}
+        <NodeDetail node={state.selected} />
+      </div>
     </div>
   )
 }

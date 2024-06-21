@@ -1,7 +1,10 @@
 import { TreeState } from "../App";
+import { createNodeIcon } from "../common/icons";
+import { humanReadableDuration, nodeDuration } from "../common/time";
 import { TracingNode } from "../model/Node"
 import "./TreeView.css"
 import { FaCaretDown, FaCaretRight } from "react-icons/fa6"
+
 
 function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState: (n: TreeState) => void }) {
     const node = props.node;
@@ -38,17 +41,19 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
         event.preventDefault()
     };
 
-    let icon;
+    let expandIcon;
     if (node.children) {
         if (!isOpen) {
-            icon = <FaCaretRight className="icon" onClick={onToggle} />
+            expandIcon = <FaCaretRight className="icon" onClick={onToggle} />
         } else {
-            icon = <FaCaretDown className="icon" onClick={onToggle} />
+            expandIcon = <FaCaretDown className="icon" onClick={onToggle} />
         }
     }
 
+    const duration = nodeDuration(node);
+
     return (<li><div className={(isSelected ? "selected" : "") + " box"} onClick={onSelect}>
-        {icon}<span>{node.name}</span></div><div className="tree-children">{children}</div></li>)
+        {expandIcon}<span>{createNodeIcon(node, 20)}{node.name}</span> <span className="nt-node-duration">{duration && humanReadableDuration(duration)}</span></div><div className="tree-children">{children}</div></li>)
 }
 
 export function TreeView(props: { root: TracingNode, treeState: TreeState, setTreeState: (n: TreeState) => void }) {
