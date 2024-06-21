@@ -1,0 +1,51 @@
+.nt-detail-container {}
+
+.nt-box {
+    padding: 0.7em 1em 0.7em 1em;
+    border-radius: 10px;
+    margin-bottom: 1em;
+}
+
+.nt-input {
+    background-color: #eee;
+}
+
+.nt-output {
+    background-color: #ded;
+}
+
+.nt-error-box {
+    background-color: #edd;
+}
+
+.nt-box hr {
+    border: 0.5px solid #aaa;
+}
+
+.nt-box-title {
+    /*font-weight: bold;*/
+}
+
+.nt-box-kind {
+    font-weight: bold;
+}
+
+.nt-box-content {
+    font-family: monospace;
+    white-space: pre;
+    display: block;
+    unicode-bidi: embed;
+}
+
+.nt-counters {
+    margin-top: 1em;
+    margin-bottom: 2em;
+}
+
+.nt-counter-box {
+    padding: 0.5em;
+    background-color: #eee;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    color: #666;
+}

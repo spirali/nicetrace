@@ -11,6 +11,145 @@
       var node =
       {
         "name": "Experiment",
+        "uid": "dBmD6Vrmwp",
+        "state": "error",
+        "error": {
+          "_type": "Exception",
+          "message": "MyException",
+          "traceback": {
+            "_type": "$traceback",
+            "frames": [
+              {
+                "name": "trace",
+                "filename": "/home/spirali/projects/nicetrace/src/nicetrace/tracing.py",
+                "lineno": 338,
+                "line": "yield node"
+              },
+              {
+                "name": "<module>",
+                "filename": "/home/spirali/projects/nicetrace/mytests/mytest.py",
+                "lineno": 86,
+                "line": "raise Exception(\"MyException\")"
+              }
+            ]
+          }
+        },
+        "children": [
+          {
+            "name": "Query gpt-3.5-turbo",
+            "uid": "AERsTzyW2z",
+            "kind": "query",
+            "output": "Blue and red",
+            "inputs": {
+              "prompt": "Human: Name two colors",
+              "config": {
+                "ls_provider": "openai",
+                "ls_model_name": "gpt-3.5-turbo",
+                "ls_model_type": "chat",
+                "ls_temperature": 0.7
+              }
+            },
+            "start_time": "2024-06-21T17:40:06.561025",
+            "end_time": "2024-06-21T17:40:07.238342",
+            "meta": {
+              "icon": "query",
+              "counters": {
+                "input_tokens": 10,
+                "output_tokens": 3
+              }
+            }
+          },
+          {
+            "name": "Query gpt-3.5-turbo",
+            "uid": "tR3B5QdBMo",
+            "kind": "query",
+            "output": "Blue",
+            "inputs": {
+              "prompt": "Human: Name one color",
+              "config": {
+                "ls_provider": "openai",
+                "ls_model_name": "gpt-3.5-turbo",
+                "ls_model_type": "chat",
+                "ls_temperature": 0.7
+              }
+            },
+            "start_time": "2024-06-21T17:40:07.239161",
+            "end_time": "2024-06-21T17:40:07.708699",
+            "meta": {
+              "icon": "query",
+              "counters": {
+                "input_tokens": 10,
+                "output_tokens": 1
+              }
+            }
+          },
+          {
+            "name": "Query mistralai/Mistral-7B-Instruct-v0.3",
+            "uid": "fORQdSUCYR",
+            "kind": "query",
+            "output": " Blue and Yellow.",
+            "inputs": {
+              "prompt": "Human: Name two colors",
+              "config": {
+                "ls_provider": "together",
+                "ls_model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+                "ls_model_type": "chat",
+                "ls_temperature": 0.7
+              }
+            },
+            "start_time": "2024-06-21T17:40:07.820014",
+            "end_time": "2024-06-21T17:40:08.937267",
+            "state": "open",
+            "meta": {
+              "icon": "query",
+              "counters": {
+                "input_tokens": 9,
+                "output_tokens": 5
+              }
+            }
+          },
+          {
+            "name": "Subnode 0",
+            "uid": "NVIOcxxx",
+            "start_time": "2024-06-21T17:40:08.937488",
+            "end_time": "2024-06-21T17:40:08.938420"
+          },
+          {
+            "name": "Subnode 1",
+            "uid": "NVIOcXO0y7",
+            "state": "error",
+            "error": {
+              "_type": "Exception",
+              "message": "MyException",
+              "traceback": {
+                "_type": "$traceback",
+                "frames": [
+                  {
+                    "name": "trace",
+                    "filename": "/home/spirali/projects/nicetrace/src/nicetrace/tracing.py",
+                    "lineno": 338,
+                    "line": "yield node"
+                  },
+                  {
+                    "name": "<module>",
+                    "filename": "/home/spirali/projects/nicetrace/mytests/mytest.py",
+                    "lineno": 86,
+                    "line": "raise Exception(\"MyException\")"
+                  }
+                ]
+              }
+            },
+            "start_time": "2024-06-21T17:40:08.937488",
+            "end_time": "2024-06-21T17:40:08.938420"
+          }
+        ],
+        "start_time": "2024-06-21T17:40:06.489055",
+        "end_time": "2024-06-21T17:40:08.938582",
+        "version": "4"
+      }
+
+      /*{
+        "name": "Experiment",
         "uid": "P17Zq6TObX",
         "children": [
           {
@@ -89,7 +228,7 @@
         "start_time": "2024-06-20T19:55:52.131526",
         "end_time": "2024-06-20T19:55:54.718121",
         "version": "4"
-      };
+      };*/
       window.mountTraceView(document.getElementById("root"), node)
     }
   </script>

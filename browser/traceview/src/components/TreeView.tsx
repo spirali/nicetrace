@@ -4,7 +4,7 @@ import { humanReadableDuration, nodeDuration } from "../common/time";
 import { TracingNode } from "../model/Node"
 import "./TreeView.css"
 import { FaCaretDown, FaCaretRight } from "react-icons/fa6"
-
+import { MdError } from "react-icons/md";
 
 function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState: (n: TreeState) => void }) {
     const node = props.node;
@@ -12,7 +12,7 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
     const isOpen = props.treeState.opened.has(node.uid);
     let children;
     if (isOpen && node.children && node.children.length > 0) {
-        children = <ul>{node.children.map((c) => <TreeNode node={c} treeState={props.treeState} setTreeState={props.setTreeState} />)}</ul>;
+        children = <div className="tree-children"><ul>{node.children.map((c) => <TreeNode node={c} treeState={props.treeState} setTreeState={props.setTreeState} />)}</ul></div>;
     }
 
     const onSelect = (event: React.MouseEvent<unknown>) => {
@@ -50,11 +50,21 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
         }
     }
 
+    let statusIcon;
+    if (node.state === "error") {
+        statusIcon = <MdError color="red" className="icon" />
+    } else if (node.state === "open") {
+        statusIcon = null;
+    }
+
     const duration = nodeDuration(node);
 
-    return (<li><div className={(isSelected ? "selected" : "") + " box"} onClick={onSelect}>
-        {expandIcon}<span>{createNodeIcon(node, 20)}{node.name}</span> <span className="nt-node-duration">{duration && humanReadableDuration(duration)}</span></div><div className="tree-children">{children}</div></li>)
+    return (<li>
+        <div className={"box" + (isSelected ? " selected" : "")} onClick={onSelect}>
+            {expandIcon} <span className={node.state === "error" ? "nt-tree-error" : ""}>{createNodeIcon(node, 20)}{statusIcon}{node.name}</span> {duration && <span className="nt-node-duration">{humanReadableDuration(duration)}</span>}</div >
+        {children}</li >)
 }
+
 
 export function TreeView(props: { root: TracingNode, treeState: TreeState, setTreeState: (n: TreeState) => void }) {
     return (<div className="tree">

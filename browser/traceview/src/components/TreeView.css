@@ -46,50 +46,9 @@
 
 .nt-node-duration {
     font-size: 75%;
-    color: #aaa;
+    color: #999;
 }
 
-/* 
-.tree ul li::before {
-    content: '';
-    display: block;
-    position: absolute;
-    top: calc(var(--spacing) / -2);
-    left: -2px;
-    width: calc(var(--spacing) + 2px);
-    height: calc(var(--spacing) + 1px);
-    border: solid black;
-    border-width: 0 0 2px 2px;
+.nt-tree-error {
+    color: red;
 }
-
-.tree summary {
-    display: block;
-    cursor: pointer;
-}
-
-.tree summary::marker,
-.tree summary::-webkit-details-marker {
-    display: none;
-}
-
-.tree summary:focus {
-    outline: none;
-}
-
-.tree summary:focus-visible {
-    outline: 1px dotted #000;
-}
-
-.tree li::after,
-.tree summary::before {
-    content: '';
-    display: block;
-    position: absolute;
-    top: calc(var(--spacing) / 2 - var(--radius));
-    left: calc(var(--spacing) - var(--radius) - 1px);
-    width: calc(2 * var(--radius));
-    height: calc(2 * var(--radius));
-    border-radius: 50%;
-    background: green;
-}
- */

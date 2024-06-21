@@ -6,6 +6,7 @@ export interface TracingNode {
     state?: "open" | "error";
     inputs?: any;
     output?: any;
+    error?: any;
     meta?: any;
     children?: TracingNode[];
     start_time?: string;
