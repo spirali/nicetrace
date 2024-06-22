@@ -1,42 +1,31 @@
-.tree li {
+.nt-tree li {
     display: block;
     position: relative;
-    /* padding-left: calc(2 * var(--spacing) - var(--radius) - 2px); */
 }
 
-.tree ul {
+.nt-tree ul {
     padding: 0px;
     padding-left: 1em;
-    /* margin-left: calc(var(--radius) - var(--spacing)); */
 }
 
-/* 
-.tree ul li {
-    border-left: 2px solid black;
-} */
-/* 
-.tree ul li:last-child {
-    border-color: transparent;
-} */
-
-.icon {
+.nt-expand-icon {
     margin-right: 6px;
     position: relative;
     top: 2px
 }
 
-.tree-children {
+.nt-tree-children {
     margin-left: 25px;
 }
 
-.box {
+.nt-tree-row {
     cursor: pointer;
     padding-top: 0.6em;
     padding-bottom: 0.6em;
     padding-left: 1em;
 }
 
-.selected {
+.nt-tree-selected {
     background-color: #dddddd;
 }
 
@@ -47,8 +36,4 @@
 .nt-node-duration {
     font-size: 75%;
     color: #999;
-}
-
-.nt-tree-error {
-    color: red;
 }

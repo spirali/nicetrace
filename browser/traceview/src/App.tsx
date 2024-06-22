@@ -26,8 +26,8 @@ function App(props: { root: TracingNode }) {
     return { opened, selected: props.root }
   });
   return (
-    <div className="container">
-      <div className='panel'><TreeView root={props.root} treeState={state} setTreeState={setState} /></div>
+    <div className="nt-root-container">
+      <div className='nt-panel'><TreeView root={props.root} treeState={state} setTreeState={setState} /></div>
       <div className='nt-main-content'>
         <h1>{createNodeIcon(state.selected)}{state.selected.name}</h1>
         {/* <Actions /> */}

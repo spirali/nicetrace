@@ -26,10 +26,6 @@ if np:
     CUSTOM_SERIALIZERS[np.ndarray] = _serialize_ndarray
 
 
-def _dataclass_serialize_helper(pairs):
-    return {key: serialize_with_type(value) for key, value in pairs}
-
-
 def check_type_key(serialized, obj):
     if isinstance(serialized, dict) and "_type" not in obj:
         serialized["_type"] = type(obj).__name__
@@ -70,6 +66,7 @@ def serialize_with_type(obj: Any) -> Data:
         return [serialize_with_type(value) for value in obj]
     if isinstance(obj, dict):
         return {key: serialize_with_type(value) for key, value in obj.items()}
+    print("!!!!!!!!!!", obj)
     serializer = CUSTOM_SERIALIZERS.get(obj.__class__)
     if serializer is not None:
         serialized = serializer(obj)
@@ -84,9 +81,12 @@ def serialize_with_type(obj: Any) -> Data:
     if isinstance(obj, enum.Enum):
         return str(obj)
     if dataclasses.is_dataclass(obj):
-        serialized = dataclasses.asdict(obj, dict_factory=_dataclass_serialize_helper)
-        if "_type" not in serialized:
-            serialized["_type"] = type(obj).__name__
+        serialized = {}
+        for field in dataclasses.fields(obj):
+            value = getattr(obj, field.name)
+            if value is not None:
+                serialized[field.name] = serialize_with_type(value)
+        serialized["_type"] = type(obj).__name__
         return serialized
     return {"_type": type(obj).__name__, "id": id(obj)}
 

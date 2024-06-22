@@ -40,13 +40,15 @@ class Tag:
     color: Optional[str] = None
     """HTML color code, e.g. `#ff0000`."""
 
-    @staticmethod
-    def into_tag(obj: Union[str, "Tag"]) -> "Tag":
-        if isinstance(obj, Tag):
-            return obj
-        if isinstance(obj, str):
-            return Tag(obj)
-        raise Exception(f"Object {obj!r} cannot be converted into Tag")
+
+@dataclass
+class Metadata:
+    icon: str | None = None
+    color: str | None = None
+    tags: list[Tag] | None = None
+    counters: Dict[str, int] | None = None
+    collapse: str | None = None
+    custom: Any = None
 
 
 class TracingNode:
@@ -73,8 +75,7 @@ class TracingNode:
         name: str,
         kind: Optional[str] = None,
         inputs: Optional[Dict[str, Any]] = None,
-        meta: Optional[Dict[str, Data]] = None,
-        tags: Optional[Sequence[str | Tag]] = None,
+        meta: Optional[Metadata] = None,
         output=None,
         lock=None,
     ):
@@ -83,8 +84,6 @@ class TracingNode:
         - `kind` - Indicates category of the tracing node, may e.g. influence display of the tracing node.
         - `inputs` - A dictionary of inputs for the tracing node.
         - `meta` - A dictionary of any metadata for the tracing node, e.g. UI style data.
-        - `tags` - A list of tags for the tracing node
-        - `directory` - Whether to create a sub-directory for the tracing node while storing.
           This allows you to split the stored data across multiple files.
         - `output` - The output value of the tracing node, if it has already been computed.
         """
@@ -95,13 +94,10 @@ class TracingNode:
             inputs = serialize_with_type(inputs)
 
         if meta:
-            meta = serialize_with_type(meta)
+            assert isinstance(meta, Metadata)
 
         if output:
             output = serialize_with_type(output)
-
-        if tags is not None:
-            tags = [Tag.into_tag(tag) for tag in tags]
 
         self.name = name
         self.kind = kind
@@ -113,23 +109,22 @@ class TracingNode:
         )
         self.uid = generate_uid()
         self.children: List[TracingNode] = []
-        self.tags: List[Tag] | None = tags
         self.start_time = datetime.datetime.now() if output is None else None
         self.end_time = None if output is None else datetime.datetime.now()
         self.meta = meta
         self._lock = lock
-        # self._token = None
-        # self._lock = None
 
     def _to_dict(self):
         result = {"name": self.name, "uid": self.uid}
         if self.state != TracingNodeState.FINISHED:
             result["state"] = self.state.value
-        for name in "kind", "output", "error", "tags":
+        for name in "kind", "output", "error":
             value = getattr(self, name)
             if value is not None:
                 result[name] = value
-        if self.inputs:
+        if (
+            self.inputs
+        ):  # We cannot use cycle above, because we want to get rid also empty dict
             result["inputs"] = self.inputs
         if self.children:
             result["children"] = [c._to_dict() for c in self.children]
@@ -137,10 +132,8 @@ class TracingNode:
             result["start_time"] = self.start_time.isoformat()
         if self.end_time:
             result["end_time"] = self.end_time.isoformat()
-        if self.meta:
-            result["meta"] = self.meta
-        if self.tags:
-            result["tags"] = serialize_with_type(self.tags)
+        if self.meta is not None:
+            result["meta"] = serialize_with_type(self.meta)
         return result
 
     def to_dict(self):
@@ -157,10 +150,11 @@ class TracingNode:
         Add a tag to the tracing node.
         """
         with self._lock:
-            if self.tags is None:
-                self.tags = [Tag.into_tag(tag)]
-            else:
-                self.tags.append(Tag.into_tag(tag))
+            if self.meta is None:
+                self.meta = Metadata()
+            if self.meta.tags is None:
+                self.meta.tags = []
+            self.meta.tags.append(tag)
 
     def add_leaf(
         self,
@@ -168,23 +162,11 @@ class TracingNode:
         kind: Optional[str] = None,
         data: Optional[Any] = None,
         meta: Optional[Dict[str, Data]] = None,
-        tags: Optional[List[str | Tag]] = None,
     ) -> "TracingNode":
-        event = TracingNode(name=name, kind=kind, output=data, meta=meta, tags=tags)
+        event = TracingNode(name=name, kind=kind, output=data, meta=meta)
         with self._lock:
             self.children.append(event)
         return event
-
-    def add_meta(self, name: str, value: object):
-        """
-        Add a named metadata entry
-
-        If an input of the same name already exists, it is overriden
-        """
-        with self._lock:
-            if self.meta is None:
-                self.meta = {}
-            self.meta[name] = serialize_with_type(value)
 
     def add_input(self, name: str, value: object):
         """
@@ -229,17 +211,6 @@ class TracingNode:
             self.state = TracingNodeState.ERROR
             self.error = serialize_with_type(exc)
 
-    def has_tag_name(self, tag_name: str):
-        """
-        Returns `True` if the tracing node has a tag with the given name.
-        """
-        if not self.tags:
-            return False
-        for tag in self.tags:
-            if tag == tag_name or (isinstance(tag, Tag) and tag.name == tag_name):
-                return True
-        return False
-
     def find_nodes(self, predicate: Callable) -> List["TracingNode"]:
         """
         Find all nodes matching the given callable `predicate`.
@@ -282,7 +253,6 @@ def start_trace_block(
     kind: Optional[str] = None,
     inputs: Optional[Dict[str, Any]] = None,
     meta: Optional[Dict[str, Data]] = None,
-    tags: Optional[Sequence[str | Tag]] = None,
 ) -> tuple[TracingNode, Any]:
     parents = _TRACING_STACK.get()
     if parents:
@@ -291,7 +261,7 @@ def start_trace_block(
     else:
         parent = None
         lock = Lock()
-    node = TracingNode(name, kind, inputs, meta, tags, lock=lock)
+    node = TracingNode(name, kind, inputs, meta, lock=lock)
     token = _TRACING_STACK.set(parents + (node,))
     writer = get_current_writer()
     if parent:
@@ -331,9 +301,8 @@ def trace(
     kind: Optional[str] = None,
     inputs: Optional[Dict[str, Any]] = None,
     meta: Optional[Dict[str, Data]] = None,
-    tags: Optional[Sequence[str | Tag]] = None,
 ):
-    node, token = start_trace_block(name, kind, inputs, meta, tags)
+    node, token = start_trace_block(name, kind, inputs, meta)
     try:
         yield node
     except BaseException as e:
@@ -343,7 +312,7 @@ def trace(
 
 
 def with_trace(
-    fn: Callable = None, *, name=None, kind=None, tags: Optional[List[str | Tag]] = None
+    fn: Callable = None, *, name=None, kind=None, meta: Optional[Metadata] = None
 ):
     """
     A decorator wrapping every execution of the function in a new `TracingNode`.
@@ -376,7 +345,7 @@ def with_trace(
                 name=name or func.__name__,
                 kind=kind or "call",
                 inputs=binding.arguments,
-                tags=tags,
+                meta=meta,
             ) as node:
                 output = func(*a, **kw)
                 node.set_output(output)

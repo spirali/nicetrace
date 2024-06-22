@@ -2,20 +2,20 @@ import { TracingNode } from "../model/Node";
 import { DataRenderer } from "./DataRenderer";
 import "./NodeDetail.css";
 
-function InputBox(props: { name: string, value: any }) {
+function InputBox(props: { name: string, value: unknown }) {
     return (<div className="nt-box nt-input">
         <div className="nt-box-title"><span className="nt-box-kind">Input</span> {props.name}<hr /></div>
         <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);
 }
 
 
-function OutputBox(props: { value: any }) {
+function OutputBox(props: { value: unknown }) {
     return (<div className="nt-box nt-output">
         <div className="nt-box-title"><span className="nt-box-kind">Output</span><hr /></div>
         <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);
 }
 
-function ErrorBox(props: { value: any }) {
+function ErrorBox(props: { value: unknown }) {
     return (<div className="nt-box nt-error-box">
         <div className="nt-box-title"><span className="nt-box-kind">Error</span><hr /></div>
         <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);

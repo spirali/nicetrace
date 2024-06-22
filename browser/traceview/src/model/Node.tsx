@@ -1,3 +1,13 @@
+export interface Tag {
+    // TODO
+}
+
+export interface Metadata {
+    color?: string,
+    icon?: string,
+    tags?: Tag[],
+    counters?: any,
+}
 
 export interface TracingNode {
     uid: string;
@@ -7,7 +17,7 @@ export interface TracingNode {
     inputs?: any;
     output?: any;
     error?: any;
-    meta?: any;
+    meta?: Metadata;
     children?: TracingNode[];
     start_time?: string;
     end_time?: string;

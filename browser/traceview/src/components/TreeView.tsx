@@ -1,3 +1,4 @@
+import PulseLoader from "react-spinners/PulseLoader";
 import { TreeState } from "../App";
 import { createNodeIcon } from "../common/icons";
 import { humanReadableDuration, nodeDuration } from "../common/time";
@@ -12,7 +13,11 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
     const isOpen = props.treeState.opened.has(node.uid);
     let children;
     if (isOpen && node.children && node.children.length > 0) {
-        children = <div className="tree-children"><ul>{node.children.map((c) => <TreeNode node={c} treeState={props.treeState} setTreeState={props.setTreeState} />)}</ul></div>;
+        children = <div className="nt-tree-children"><ul>{node.children.map((c) => <TreeNode node={c} treeState={props.treeState} setTreeState={props.setTreeState} />)}</ul></div>;
+    }
+    let color = node?.meta?.color;
+    if (node.state === "error") {
+        color = "red";
     }
 
     const onSelect = (event: React.MouseEvent<unknown>) => {
@@ -44,9 +49,9 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
     let expandIcon;
     if (node.children) {
         if (!isOpen) {
-            expandIcon = <FaCaretRight className="icon" onClick={onToggle} />
+            expandIcon = <FaCaretRight className="nt-expand-icon" onClick={onToggle} />
         } else {
-            expandIcon = <FaCaretDown className="icon" onClick={onToggle} />
+            expandIcon = <FaCaretDown className="nt-expand-icon" onClick={onToggle} />
         }
     }
 
@@ -54,20 +59,20 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
     if (node.state === "error") {
         statusIcon = <MdError color="red" className="icon" />
     } else if (node.state === "open") {
-        statusIcon = null;
+        statusIcon = <PulseLoader color={color} margin={1} style={{ marginRight: 10 }} speedMultiplier={0.7} size={7} className="icon" />;
     }
 
     const duration = nodeDuration(node);
 
     return (<li>
-        <div className={"box" + (isSelected ? " selected" : "")} onClick={onSelect}>
-            {expandIcon} <span className={node.state === "error" ? "nt-tree-error" : ""}>{createNodeIcon(node, 20)}{statusIcon}{node.name}</span> {duration && <span className="nt-node-duration">{humanReadableDuration(duration)}</span>}</div >
+        <div className={"nt-tree-row" + (isSelected ? " nt-tree-selected" : "")} onClick={onSelect}>
+            {expandIcon} <span style={{ color }}>{createNodeIcon(node, 20)}{statusIcon}{node.name}</span> {duration && <span className="nt-node-duration">{humanReadableDuration(duration)}</span>}</div >
         {children}</li >)
 }
 
 
 export function TreeView(props: { root: TracingNode, treeState: TreeState, setTreeState: (n: TreeState) => void }) {
-    return (<div className="tree">
+    return (<div className="nt-tree">
         <ul>
             <TreeNode node={props.root} treeState={props.treeState} setTreeState={props.setTreeState} />
         </ul>

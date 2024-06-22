@@ -1,9 +1,11 @@
 from nicetrace import TracingNodeState, current_tracing_node, trace, with_trace
-from nicetrace.tracing import Tag
+from nicetrace import Tag, Metadata
 import pytest
 import json
 import copy
 from dataclasses import dataclass
+
+
 from testutils import strip_tree
 
 
@@ -255,44 +257,23 @@ async def test_async_tracing_node():
 
 
 def test_tracing_node_tags():
-    with trace("root", tags=["abc", "xyz"]) as c:
-        c.add_tag("123")
+    with trace("root", meta=Metadata(tags=[Tag("abc"), Tag("xyz")])) as c:
+        c.add_tag(Tag("123"))
         with trace("child"):
-            current_tracing_node().add_tag("mmm")
+            current_tracing_node().add_tag(Tag("mmm"))
             current_tracing_node().add_tag(Tag("nnn", color="green"))
 
     data = c.to_dict()
     root = strip_tree(copy.deepcopy(data))
-    assert root == {
-        "name": "root",
-        "tags": [
-            {"name": "abc", "color": None, "_type": "Tag"},
-            {"name": "xyz", "color": None, "_type": "Tag"},
-            {"name": "123", "color": None, "_type": "Tag"},
-        ],
-        "children": [
-            {
-                "name": "child",
-                "tags": [
-                    {"name": "mmm", "color": None, "_type": "Tag"},
-                    {"name": "nnn", "color": "green", "_type": "Tag"},
-                ],
-            }
-        ],
-    }
-
-
-def test_find_tracing_nodes():
-    with trace("root") as c:
-        c.add_tag("123")
-        with trace("child"):
-            with trace("child3") as c3:
-                c3.add_tag("x")
-                c3.set_output("abc")
-        with trace("child2", tags=[Tag("x")]) as c4:
-            pass
-
-    assert c.find_nodes(lambda ctx: ctx.has_tag_name("x")) == [c3, c4]
+    assert root["meta"]["tags"] == [
+        {"name": "abc", "color": None, "_type": "Tag"},
+        {"name": "xyz", "color": None, "_type": "Tag"},
+        {"name": "123", "color": None, "_type": "Tag"},
+    ]
+    assert root["children"][0]["meta"]["tags"] == [
+        {"name": "mmm", "color": None, "_type": "Tag"},
+        {"name": "nnn", "color": "green", "_type": "Tag"},
+    ]
 
 
 @pytest.mark.parametrize(

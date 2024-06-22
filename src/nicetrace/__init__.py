@@ -1,4 +1,5 @@
 from .tracing import (
+    Metadata,
     Tag,
     TracingNode,
     trace,
@@ -18,6 +19,7 @@ from .filewriter import FileWriter
 
 __all__ = [
     "trace",
+    "Metadata",
     "TracingNode",
     "TracingNodeState",
     "current_tracing_node",

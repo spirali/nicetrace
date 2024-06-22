@@ -1,6 +1,6 @@
 # from ..tracing import with_trace
 from typing import Any, Optional
-from ..tracing import start_trace_block, end_trace_block
+from ..tracing import start_trace_block, end_trace_block, Metadata
 
 #
 # def wrap_openai(client):
@@ -32,7 +32,10 @@ try:
                 inputs["prompts"] = prompts
             inputs["config"] = metadata
             pair = start_trace_block(
-                f"Query {metadata['ls_model_name']}", kind="query", inputs=inputs, meta={"icon": "query"}
+                f"Query {metadata['ls_model_name']}",
+                kind="query",
+                inputs=inputs,
+                meta=Metadata(icon="query"),
             )
             self.running_nodes[run_id.hex] = pair
 
@@ -45,8 +48,6 @@ try:
             tags: Optional[list[str]] = None,
             **kwargs: Any,
         ) -> None:
-            print(run_id)
-            print(response)
             node, token = self.running_nodes.pop(run_id.hex)
             generations = [g.text for gg in response.generations for g in gg]
             if len(generations) == 1:
@@ -54,8 +55,11 @@ try:
             else:
                 node.set_output(generations)
             usage = response.llm_output["token_usage"]
-            counters = {"input_tokens": usage["prompt_tokens"], "output_tokens": usage["completion_tokens"]}
-            node.add_meta("counters", counters)
+            counters = {
+                "input_tokens": usage["prompt_tokens"],
+                "output_tokens": usage["completion_tokens"],
+            }
+            node.meta.counters = counters
             end_trace_block(node, token, None)
 
         def on_llm_error(
