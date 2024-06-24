@@ -281,7 +281,7 @@ def start_trace_block(
             assert parent.state == TracingNodeState.OPEN
             parent.children.append(node)
         if writer:
-            writer.write_node_in_progress(parent)
+            writer.write_node_in_progress(parents[0])
     else:
         if writer:
             writer.write_node_in_progress(node)
@@ -312,7 +312,7 @@ def trace(
     name: str,
     kind: Optional[str] = None,
     inputs: Optional[Dict[str, Any]] = None,
-    meta: Optional[Dict[str, Data]] = None,
+    meta: Optional[Metadata] = None,
 ):
     node, token = start_trace_block(name, kind, inputs, meta)
     try:

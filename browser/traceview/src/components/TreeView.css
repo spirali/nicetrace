@@ -9,13 +9,16 @@
 }
 
 .nt-expand-icon {
-    margin-right: 6px;
-    position: relative;
-    top: 2px
+    width: 20px;
+}
+
+.nt-no-expand {
+    width: 20px;
+    display: inline-block;
 }
 
 .nt-tree-children {
-    margin-left: 25px;
+    margin-left: 0px;
 }
 
 .nt-tree-row {
@@ -23,6 +26,7 @@
     padding-top: 0.6em;
     padding-bottom: 0.6em;
     padding-left: 1em;
+    font-size: 12px;
 }
 
 .nt-tree-selected {
@@ -34,6 +38,10 @@
 }
 
 .nt-node-duration {
-    font-size: 75%;
-    color: #999;
+    font-size: 85%;
+    color: #666;
+}
+
+.nt-group {
+    font-style: italic;
 }

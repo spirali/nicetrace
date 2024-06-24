@@ -66,7 +66,6 @@ def serialize_with_type(obj: Any) -> Data:
         return [serialize_with_type(value) for value in obj]
     if isinstance(obj, dict):
         return {key: serialize_with_type(value) for key, value in obj.items()}
-    print("!!!!!!!!!!", obj)
     serializer = CUSTOM_SERIALIZERS.get(obj.__class__)
     if serializer is not None:
         serialized = serializer(obj)

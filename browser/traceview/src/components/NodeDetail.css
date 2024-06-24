@@ -1,9 +1,8 @@
-.nt-detail-container {}
-
 .nt-box {
     padding: 0.7em 1em 0.7em 1em;
     border-radius: 10px;
     margin-bottom: 1em;
+    max-width: 95%;
 }
 
 .nt-input {
@@ -32,7 +31,7 @@
 
 .nt-box-content {
     font-family: monospace;
-    white-space: pre;
+    white-space: pre-wrap;
     display: block;
     unicode-bidi: embed;
 }

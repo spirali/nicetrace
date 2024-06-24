@@ -2,8 +2,9 @@ import { TbMessageQuestion } from "react-icons/tb";
 import { TracingNode } from "../model/Node";
 import { GrTree } from "react-icons/gr";
 import { CgShapeCircle } from "react-icons/cg";
-import { IoPersonOutline } from "react-icons/io5";
+import { IoPersonSharp } from "react-icons/io5";
 import { IoEyeOutline } from "react-icons/io5";
+
 
 export function createNodeIcon(node: TracingNode, size?: number) {
     const icon = node.meta?.icon;
@@ -11,7 +12,7 @@ export function createNodeIcon(node: TracingNode, size?: number) {
         return <TbMessageQuestion className="nt-node-icon" size={size} />
     }
     if (icon === "person") {
-        return <IoPersonOutline className="nt-node-icon" size={size} />
+        return <IoPersonSharp className="nt-node-icon" size={size} />
     }
     if (icon === "eye") {
         return <IoEyeOutline className="nt-node-icon" size={size} />

@@ -53,6 +53,8 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
         } else {
             expandIcon = <FaCaretDown className="nt-expand-icon" onClick={onToggle} />
         }
+    } else {
+        expandIcon = <span className="nt-no-expand" />
     }
 
     let statusIcon;
@@ -64,9 +66,16 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
 
     const duration = nodeDuration(node);
 
+    let name;
+    if (node.group_node) {
+        name = <span className="nt-group">{node.name}</span>
+    } else {
+        name = node.name;
+    }
+
     return (<li>
         <div className={"nt-tree-row" + (isSelected ? " nt-tree-selected" : "")} onClick={onSelect}>
-            {expandIcon} <span style={{ color }}>{createNodeIcon(node, 20)}{statusIcon}{node.name}</span> {duration && <span className="nt-node-duration">{humanReadableDuration(duration)}</span>}</div >
+            {expandIcon} <span style={{ color }}>{createNodeIcon(node, 20)}{statusIcon}{name}</span> {duration && <span className="nt-node-duration">{humanReadableDuration(duration)}</span>}</div >
         {children}</li >)
 }
 

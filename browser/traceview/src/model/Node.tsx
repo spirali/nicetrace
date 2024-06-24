@@ -7,6 +7,7 @@ export interface Metadata {
     icon?: string,
     tags?: Tag[],
     counters?: any,
+    collapse?: string,
 }
 
 export interface TracingNode {
@@ -21,4 +22,6 @@ export interface TracingNode {
     children?: TracingNode[];
     start_time?: string;
     end_time?: string;
+
+    group_node?: string,
 }

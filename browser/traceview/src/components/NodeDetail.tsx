@@ -58,11 +58,11 @@ export function NodeDetail(props: { node: TracingNode }) {
         }
     }
 
-    if (node.output) {
+    if (node.output !== undefined) {
         boxes.push(<OutputBox value={node.output} />)
     }
 
-    if (node.error) {
+    if (node.error !== undefined) {
         boxes.push(<ErrorBox value={node.error} />)
     }
 
@@ -73,5 +73,5 @@ export function NodeDetail(props: { node: TracingNode }) {
         const entries = [...counters.entries()];
         counterPanel = <div className="nt-counters">{entries.map(([key, value]) => <CounterBox value={key + ": " + value} />)}</div>
     }
-    return <div className="nt-detail-container">{counterPanel}{boxes}</div>
+    return <div>{counterPanel}{boxes}</div>
 }
