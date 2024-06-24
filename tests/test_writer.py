@@ -58,7 +58,7 @@ def test_file_writer(tmp_path):
         with open(dir / f"trace-{node.uid}.html") as f:
             return f.read()
 
-    with FileWriter(dir, html=True) as storage:
+    with FileWriter(dir, html=True):
         with trace("Hello") as node:
             with trace("First child"):
                 pass

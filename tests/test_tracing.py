@@ -1,7 +1,7 @@
 from nicetrace import TracingNodeState, current_tracing_node, trace, with_trace
 from nicetrace import Tag, Metadata
+from nicetrace import trace_instant
 import pytest
-import json
 import copy
 from dataclasses import dataclass
 
@@ -208,9 +208,9 @@ def test_tracing_node_lists():
     }
 
 
-def test_tracing_node_events():
+def test_tracing_node_instants():
     with trace("root") as c:
-        c.add_leaf("Message to Alice", kind="message", data={"x": 10, "y": 20})
+        trace_instant("Message to Alice", kind="message", inputs={"x": 10, "y": 20})
     output = strip_tree(c.to_dict())
     # print(json.dumps(output, indent=2))
     assert output == {
@@ -219,7 +219,7 @@ def test_tracing_node_events():
             {
                 "name": "Message to Alice",
                 "kind": "message",
-                "output": {"x": 10, "y": 20},
+                "inputs": {"x": 10, "y": 20},
             }
         ],
     }
@@ -266,12 +266,12 @@ def test_tracing_node_tags():
     data = c.to_dict()
     root = strip_tree(copy.deepcopy(data))
     assert root["meta"]["tags"] == [
-        {"name": "abc", "color": None, "_type": "Tag"},
-        {"name": "xyz", "color": None, "_type": "Tag"},
-        {"name": "123", "color": None, "_type": "Tag"},
+        {"name": "abc", "_type": "Tag"},
+        {"name": "xyz", "_type": "Tag"},
+        {"name": "123", "_type": "Tag"},
     ]
     assert root["children"][0]["meta"]["tags"] == [
-        {"name": "mmm", "color": None, "_type": "Tag"},
+        {"name": "mmm", "_type": "Tag"},
         {"name": "nnn", "color": "green", "_type": "Tag"},
     ]
 

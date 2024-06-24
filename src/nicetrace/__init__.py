@@ -3,6 +3,7 @@ from .tracing import (
     Tag,
     TracingNode,
     trace,
+    trace_instant,
     TracingNodeState,
     current_tracing_node,
     with_trace,
@@ -19,6 +20,7 @@ from .filewriter import FileWriter
 
 __all__ = [
     "trace",
+    "trace_instant",
     "Metadata",
     "TracingNode",
     "TracingNodeState",

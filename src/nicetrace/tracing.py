@@ -1,12 +1,12 @@
 from contextlib import contextmanager
 import contextvars
-import datetime
+from datetime import datetime
 import functools
 import inspect
 from dataclasses import dataclass
 from enum import Enum
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from typing import Any, Callable, Dict, List, Optional
 
 from .utils.ids import generate_uid
 from .serialization import Data, serialize_with_type
@@ -78,6 +78,7 @@ class TracingNode:
         meta: Optional[Metadata] = None,
         output=None,
         lock=None,
+        is_instant=False,
     ):
         """
         - `name` - A description or name for the tracing node.
@@ -104,13 +105,16 @@ class TracingNode:
         self.inputs = inputs
         self.output = output
         self.error = None
-        self.state: TracingNodeState = (
-            TracingNodeState.OPEN if output is None else TracingNodeState.FINISHED
-        )
         self.uid = generate_uid()
         self.children: List[TracingNode] = []
-        self.start_time = datetime.datetime.now() if output is None else None
-        self.end_time = None if output is None else datetime.datetime.now()
+        if is_instant:
+            self.start_time = None
+            self.end_time = datetime.now()
+            self.state = TracingNodeState.FINISHED
+        else:
+            self.start_time = datetime.now()
+            self.end_time = None
+            self.state = TracingNodeState.OPEN
         self.meta = meta
         self._lock = lock
 
@@ -156,17 +160,25 @@ class TracingNode:
                 self.meta.tags = []
             self.meta.tags.append(tag)
 
-    def add_leaf(
+    def add_instant(
         self,
         name: str,
         kind: Optional[str] = None,
-        data: Optional[Any] = None,
-        meta: Optional[Dict[str, Data]] = None,
+        inputs: Optional[Any] = None,
+        output: Optional[Any] = None,
+        meta: Optional[Metadata] = None,
     ) -> "TracingNode":
-        event = TracingNode(name=name, kind=kind, output=data, meta=meta)
+        node = TracingNode(
+            name=name,
+            kind=kind,
+            inputs=inputs,
+            output=output,
+            meta=meta,
+            is_instant=True,
+        )
         with self._lock:
-            self.children.append(event)
-        return event
+            self.children.append(node)
+        return node
 
     def add_input(self, name: str, value: object):
         """
@@ -285,7 +297,7 @@ def end_trace_block(node, token, error):
             else:
                 node.state = TracingNodeState.ERROR
                 node.error = serialize_with_type(error)
-        node.end_time = datetime.datetime.now()
+        node.end_time = datetime.now()
     writer = get_current_writer()
     if writer:
         parents = _TRACING_STACK.get()
@@ -309,6 +321,16 @@ def trace(
         end_trace_block(node, token, e)
         raise e
     end_trace_block(node, token, None)
+
+
+def trace_instant(
+    name: str,
+    kind: Optional[str] = None,
+    inputs: Optional[Dict[str, Any]] = None,
+    output: Optional[Any] = None,
+    meta: Optional[Metadata] = None,
+):
+    return current_tracing_node().add_instant(name, kind, inputs, output, meta)
 
 
 def with_trace(
