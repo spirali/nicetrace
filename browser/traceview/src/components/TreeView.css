@@ -5,7 +5,7 @@
 
 .nt-tree ul {
     padding: 0px;
-    padding-left: 1em;
+    padding-left: 0em;
 }
 
 .nt-expand-icon {
@@ -18,7 +18,7 @@
 }
 
 .nt-tree-children {
-    margin-left: 0px;
+    margin-left: 1em;
 }
 
 .nt-tree-row {

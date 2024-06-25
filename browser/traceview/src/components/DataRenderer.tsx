@@ -21,7 +21,7 @@ function Frame(props: { frame: TracebackFrame }) {
 }
 
 function Traceback(props: { frames: TracebackFrame[] }) {
-    let frames = props.frames;
+    const frames = props.frames;
     if (!frames || !(frames.length >= 1)) {
         return <span>Invalid traceback</span>;
     }
@@ -59,11 +59,8 @@ export function DataRenderer(props: { data: any }) {
         return <>{parse(d.html)}</>;
     }
 
-    // TODO: Remove "Blob" in future version
-    if ((d._type === "Blob" || d._type === "$blob") && IMAGE_MIME_TYPES.includes(d.mime_type)) {
+    if ((d._type === "$blob") && IMAGE_MIME_TYPES.includes(d.mime_type)) {
         const data = `data:${d.mime_type};base64, ${d.data}`;
-        // const height = !isOpen ? 120 : undefined;
-        // eslint-disable-next-line jsx-a11y/alt-text
         return <img src={data} />
     }
 
@@ -72,11 +69,9 @@ export function DataRenderer(props: { data: any }) {
     }
 
     const children = [];
-    let type = null;
     for (const property in d) {
         const value = d[property];
         if (property === "_type") {
-            // type = value;
             continue;
         }
         children.push({ property, value });

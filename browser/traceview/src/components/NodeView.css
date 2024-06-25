@@ -1,0 +1,39 @@
+.nt-panel {
+    width: 20%;
+    background-color: #f6f6f6;
+}
+
+.nt-root-container {
+    display: flex;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+
+    font-family: sans-serif;
+    font-size: 16px;
+    color: #333;
+}
+
+.nt-main-content {
+    margin-left: 1.5em;
+    width: 80%;
+    overflow: auto;
+    max-height: 100vh;
+}
+
+.nt-actions {
+    /* background-color: bisque; */
+}
+
+.nt-action-icon {
+    margin: 0.75em;
+}
+
+a.nt-action-link,
+a:visited.nt-action-link {
+    color: black;
+}
+
+a:hover.nt-action-link {
+    color: #aaa;
+}

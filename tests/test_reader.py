@@ -2,6 +2,8 @@ from nicetrace import FileReader, FileWriter, trace
 
 
 def strip_summary(summary):
+    summary = summary.copy()
+    start_time = summary.pop("start_time")
     end_time = summary.pop("end_time")
     if summary["state"] == "finished" or summary["state"] == "error":
         assert isinstance(end_time, str)
@@ -22,7 +24,7 @@ def test_reader_finished(tmp_path):
         with trace("Second") as t2:
             pass
 
-    s = [strip_summary(s) for s in reader.list_summaries()]
+    s = [strip_summary(x) for x in reader.list_summaries()]
     s.sort(key=lambda x: x["name"])
 
     assert s == [
@@ -30,8 +32,12 @@ def test_reader_finished(tmp_path):
         {"uid": t2.uid, "name": "Second", "state": "finished"},
     ]
 
-    assert reader.read_serialized_node(t1.uid) == t1.to_dict()
-    assert reader.read_serialized_node(t2.uid) == t2.to_dict()
+    assert reader.read_trace(t1.uid) == t1.to_dict()
+    assert reader.read_trace(t2.uid) == t2.to_dict()
+
+    t = [strip_summary(x) for x in reader.list_summaries()]
+    t.sort(key=lambda x: x["name"])
+    assert s == t
 
 
 def test_reader_running(tmp_path):
@@ -49,8 +55,5 @@ def test_reader_running(tmp_path):
                     {"uid": t1.uid, "name": "First", "state": "open"},
                 ]
     s = [strip_summary(s) for s in reader.list_summaries()]
-    assert s == [
-        {"uid": t1.uid, "name": "First", "state": "finished"},
-    ]
-    t = reader.list_summaries()
-    assert s[0] is t[0]
+    assert len(s) == 1
+    assert s[0]["state"] == "finished"

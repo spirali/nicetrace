@@ -1,5 +1,5 @@
 import PulseLoader from "react-spinners/PulseLoader";
-import { TreeState } from "../App";
+import { TreeState } from "./NodeView";
 import { createNodeIcon } from "../common/icons";
 import { humanReadableDuration, nodeDuration } from "../common/time";
 import { TracingNode } from "../model/Node"
@@ -49,9 +49,9 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
     let expandIcon;
     if (node.children) {
         if (!isOpen) {
-            expandIcon = <FaCaretRight className="nt-expand-icon" onClick={onToggle} />
+            expandIcon = <FaCaretRight className="nt-expand-icon" onClick={onToggle} size={20} />
         } else {
-            expandIcon = <FaCaretDown className="nt-expand-icon" onClick={onToggle} />
+            expandIcon = <FaCaretDown className="nt-expand-icon" onClick={onToggle} size={20} />
         }
     } else {
         expandIcon = <span className="nt-no-expand" />
@@ -59,7 +59,7 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
 
     let statusIcon;
     if (node.state === "error") {
-        statusIcon = <MdError color="red" className="icon" />
+        statusIcon = <MdError color="red" className="icon" size={20} />
     } else if (node.state === "open") {
         statusIcon = <PulseLoader color={color} margin={1} style={{ marginRight: 10 }} speedMultiplier={0.7} size={7} className="icon" />;
     }

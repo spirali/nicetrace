@@ -7,5 +7,5 @@ class TraceReader(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def read_serialized_node(self, uid: str) -> dict:
+    def read_trace(self, uid: str) -> dict:
         raise NotImplementedError()
