@@ -281,10 +281,10 @@ def start_trace_block(
             assert parent.state == TracingNodeState.OPEN
             parent.children.append(node)
         if writer:
-            writer.write_node_in_progress(parents[0])
+            writer.write_node(parents[0], False)
     else:
         if writer:
-            writer.write_node_in_progress(node)
+            writer.write_node(node, False)
     return node, token
 
 
@@ -302,9 +302,9 @@ def end_trace_block(node, token, error):
     if writer:
         parents = _TRACING_STACK.get()
         if parents:
-            writer.write_node_in_progress(parents[0])
+            writer.write_node(parents[0], False)
         else:
-            writer.write_final_node(node)
+            writer.write_node(node, True)
 
 
 @contextmanager
@@ -411,4 +411,4 @@ def current_tracing_node(check: bool = True) -> Optional[TracingNode]:
     return stack[-1]
 
 
-from .writer import get_current_writer
+from .writer.base import get_current_writer

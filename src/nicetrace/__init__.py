@@ -15,8 +15,9 @@ from .serialization import (
 )
 from .data.html import Html
 from .data.blob import DataWithMime
-from .writer import get_current_writer, TraceWriter
-from .filewriter import FileWriter
+from .writer.base import get_current_writer, TraceWriter
+from .writer.filewriter import FileWriter
+from .reader.filereader import FileReader
 
 __all__ = [
     "trace",
@@ -35,4 +36,5 @@ __all__ = [
     "get_current_writer",
     "TraceWriter",
     "FileWriter",
+    "FileReader",
 ]
