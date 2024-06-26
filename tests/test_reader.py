@@ -1,9 +1,10 @@
-from nicetrace import FileReader, FileWriter, trace
+from nicetrace import DirReader, DirWriter, trace, FileWriter
 
 
 def strip_summary(summary):
     summary = summary.copy()
     start_time = summary.pop("start_time")
+    assert isinstance(start_time, str)
     end_time = summary.pop("end_time")
     if summary["state"] == "finished" or summary["state"] == "error":
         assert isinstance(end_time, str)
@@ -15,44 +16,66 @@ def strip_summary(summary):
 def test_reader_finished(tmp_path):
     dir = tmp_path / "traces"
     dir.mkdir()
-    reader = FileReader(dir)
+    reader = DirReader(dir)
     assert reader.list_summaries() == []
 
-    with FileWriter(dir):
+    with DirWriter(dir):
         with trace("First") as t1:
             pass
         with trace("Second") as t2:
             pass
+    with FileWriter(dir / "hello1"):
+        with trace("Hello") as t3:
+            pass
 
-    s = [strip_summary(x) for x in reader.list_summaries()]
-    s.sort(key=lambda x: x["name"])
+    s = {x["storage_id"]: strip_summary(x) for x in reader.list_summaries()}
+    assert s == {
+        f"trace-{t1.uid}": {
+            "storage_id": f"trace-{t1.uid}",
+            "uid": t1.uid,
+            "name": "First",
+            "state": "finished",
+        },
+        f"trace-{t2.uid}": {
+            "storage_id": f"trace-{t2.uid}",
+            "uid": t2.uid,
+            "name": "Second",
+            "state": "finished",
+        },
+        f"hello1": {
+            "storage_id": f"hello1",
+            "uid": t3.uid,
+            "name": "Hello",
+            "state": "finished",
+        },
+    }
 
-    assert s == [
-        {"uid": t1.uid, "name": "First", "state": "finished"},
-        {"uid": t2.uid, "name": "Second", "state": "finished"},
-    ]
+    assert reader.read_trace(f"trace-{t1.uid}") == t1.to_dict()
+    assert reader.read_trace(f"trace-{t2.uid}") == t2.to_dict()
+    assert reader.read_trace(f"hello1") == t3.to_dict()
 
-    assert reader.read_trace(t1.uid) == t1.to_dict()
-    assert reader.read_trace(t2.uid) == t2.to_dict()
-
-    t = [strip_summary(x) for x in reader.list_summaries()]
-    t.sort(key=lambda x: x["name"])
+    t = {x["storage_id"]: strip_summary(x) for x in reader.list_summaries()}
     assert s == t
 
 
 def test_reader_running(tmp_path):
     dir = tmp_path / "traces"
     dir.mkdir()
-    reader = FileReader(dir)
+    reader = DirReader(dir)
     assert reader.list_summaries() == []
 
-    with FileWriter(dir) as writer:
+    with DirWriter(dir) as writer:
         with trace("First") as t1:
             writer.sync()
             with trace("Second"):
                 s = [strip_summary(s) for s in reader.list_summaries()]
                 assert s == [
-                    {"uid": t1.uid, "name": "First", "state": "open"},
+                    {
+                        "storage_id": f"trace-{t1.uid}",
+                        "uid": t1.uid,
+                        "name": "First",
+                        "state": "open",
+                    },
                 ]
     s = [strip_summary(s) for s in reader.list_summaries()]
     assert len(s) == 1

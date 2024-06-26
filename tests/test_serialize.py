@@ -52,7 +52,6 @@ def test_custom_serializer():
     try:
         mm = MyClass(123)
         output = serialize_with_type(mm)
-        print(output)
         assert output == {"abc": "MySerializer", "x": 123, "_type": "MyClass"}
     finally:
         unregister_custom_serializer(MyClass)

@@ -48,7 +48,7 @@ export function SummaryList(props: { summaries: Summary[] }) {
             }
             const age = getAge(s.start_time);
             return (<tr style={{ color }}>
-                <td className="nt-summary-td"><Link to={"/traces/" + s.uid}>{s.uid}</Link></td>
+                <td className="nt-summary-td"><Link to={"/traces/" + s.storage_id}>{s.storage_id}</Link></td>
                 <td>{s.name}</td>
                 <td><StateLabel state={s.state} /></td>
                 <td>{age ? humanReadableDuration(age) : null}</td>

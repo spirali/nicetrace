@@ -13,7 +13,7 @@ export function TracePage(props: { url: string }) {
 
     useEffect(() => {
         axios
-            .get(props.url + "traces/" + traceId)
+            .get(props.url + "api/traces/" + traceId)
             .then((response) => setData(response.data))
             .catch((error) => setError("Could not fetch data: " + error.message))
             .finally(() => setLoaded(true));

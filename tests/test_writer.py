@@ -1,4 +1,4 @@
-from nicetrace import get_current_writer, FileWriter
+from nicetrace import get_current_writer, DirWriter, FileWriter
 from nicetrace import trace
 import json
 import time
@@ -6,22 +6,22 @@ import time
 
 def test_writer_contextvar(tmp_path):
     assert get_current_writer() is None
-    with FileWriter(tmp_path / "one") as w1:
+    with DirWriter(tmp_path / "one") as w1:
         assert get_current_writer() is w1
-        with FileWriter(tmp_path / "two") as w2:
+        with DirWriter(tmp_path / "two") as w2:
             assert get_current_writer() is w2
         assert get_current_writer() is w1
     assert get_current_writer() is None
 
 
-def test_file_writer_json_delayed(tmp_path):
+def test_dir_writer_json_delayed(tmp_path):
     dir = tmp_path / "traces"
 
     def read(node):
         with open(dir / f"trace-{node.uid}.json") as f:
             return json.loads(f.read())
 
-    with FileWriter(dir):
+    with DirWriter(dir):
         with trace("Hello") as node:
             with trace("Xyxy"):
                 pass
@@ -32,14 +32,14 @@ def test_file_writer_json_delayed(tmp_path):
             assert data["children"][0]["name"] == "Xyxy"
 
 
-def test_file_writer_json(tmp_path):
-    dir = tmp_path / "files"
+def test_dir_writer_json(tmp_path):
+    dir = tmp_path / "traces"
 
     def read(node):
         with open(dir / f"trace-{node.uid}.json") as f:
             return json.loads(f.read())
 
-    with FileWriter(dir) as storage:
+    with DirWriter(dir) as storage:
         with trace("Hello") as node:
             storage.sync()
             data = read(node)
@@ -70,19 +70,20 @@ def test_file_writer_json(tmp_path):
         assert "state" not in data["children"][0]
 
 
-# def test_file_writer(tmp_path):
-#     dir = tmp_path / "files"
+def test_file_writer(tmp_path):
+    path = tmp_path / "traces" / "my.json"
 
-#     def read(node):
-#         with open(dir / f"trace-{node.uid}.html") as f:
-#             return f.read()
+    def read():
+        with open(path) as f:
+            return json.loads(f.read())
 
-#     with FileWriter(dir, html=True):
-#         with trace("Hello") as node:
-#             with trace("First child"):
-#                 pass
-
-#     html = read(node)
-#     assert html.startswith("<!doctype html>\n<html")
-#     assert html.rstrip().endswith("</html>")
-#     assert '"name": "First child"' in html
+    writer = FileWriter(path)
+    with trace("Root", writer=writer):
+        assert read()["state"] == "open"
+    data = read()
+    assert "state" not in data
+    with trace("Root", writer=writer):
+        assert read()["state"] == "open"
+    data2 = read()
+    assert "state" not in data2
+    assert data["uid"] != data2["uid"]

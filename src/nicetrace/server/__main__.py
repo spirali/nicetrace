@@ -1,10 +1,7 @@
-from http.server import ThreadingHTTPServer
 import argparse
 
-from .app import create_app
-from ..reader.filereader import FileReader
-from waitress import serve
-
+from ..reader.filereader import DirReader
+from .app import start_server
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -17,14 +14,8 @@ def parse_args():
 
 def main():
     args = parse_args()
-    reader = FileReader(args.path)
-    application = create_app(reader)
-    if args.debug:
-        application.run(host=args.host, port=args.port, debug=True)
-    else:
-        print(f"Running at http://localhost:{args.port}")
-        serve(application, host=args.host, port=args.port)
-
+    reader = DirReader(args.path)
+    start_server(reader, host=args.host, port=args.port, debug=args.debug)
 
 if __name__ == "__main__":
     main()

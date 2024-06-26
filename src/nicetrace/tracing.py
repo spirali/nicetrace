@@ -264,7 +264,8 @@ def start_trace_block(
     name: str,
     kind: Optional[str] = None,
     inputs: Optional[Dict[str, Any]] = None,
-    meta: Optional[Dict[str, Data]] = None,
+    meta: Optional[Metadata] = None,
+    writer: Optional["TraceWriter"] = None,
 ) -> tuple[TracingNode, Any]:
     parents = _TRACING_STACK.get()
     if parents:
@@ -275,7 +276,8 @@ def start_trace_block(
         lock = Lock()
     node = TracingNode(name, kind, inputs, meta, lock=lock)
     token = _TRACING_STACK.set(parents + (node,))
-    writer = get_current_writer()
+    if writer is None:
+        writer = get_current_writer()
     if parent:
         with lock:
             assert parent.state == TracingNodeState.OPEN
@@ -288,7 +290,7 @@ def start_trace_block(
     return node, token
 
 
-def end_trace_block(node, token, error):
+def end_trace_block(node, token, error, writer=None):
     _TRACING_STACK.reset(token)
     with node._lock:
         if node.state == TracingNodeState.OPEN:
@@ -298,7 +300,8 @@ def end_trace_block(node, token, error):
                 node.state = TracingNodeState.ERROR
                 node.error = serialize_with_type(error)
         node.end_time = datetime.now()
-    writer = get_current_writer()
+    if writer is None:
+        writer = get_current_writer()
     if writer:
         parents = _TRACING_STACK.get()
         if parents:
@@ -310,17 +313,18 @@ def end_trace_block(node, token, error):
 @contextmanager
 def trace(
     name: str,
-    kind: Optional[str] = None,
-    inputs: Optional[Dict[str, Any]] = None,
-    meta: Optional[Metadata] = None,
+    kind: str | None = None,
+    inputs: Dict[str, Any] | None = None,
+    meta: Metadata | None = None,
+    writer: Optional["TraceWriter"] = None,
 ):
-    node, token = start_trace_block(name, kind, inputs, meta)
+    node, token = start_trace_block(name, kind, inputs, meta, writer)
     try:
         yield node
     except BaseException as e:
-        end_trace_block(node, token, e)
+        end_trace_block(node, token, e, writer)
         raise e
-    end_trace_block(node, token, None)
+    end_trace_block(node, token, None, writer)
 
 
 def trace_instant(
@@ -411,4 +415,4 @@ def current_tracing_node(check: bool = True) -> Optional[TracingNode]:
     return stack[-1]
 
 
-from .writer.base import get_current_writer
+from .writer.base import get_current_writer, TraceWriter

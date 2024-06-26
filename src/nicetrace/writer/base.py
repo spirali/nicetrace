@@ -15,15 +15,15 @@ class TraceWriter(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def sync():
+    def sync(self):
         pass
 
     @abstractmethod
-    def start():
+    def start(self):
         pass
 
     @abstractmethod
-    def stop():
+    def stop(self):
         pass
 
     def __enter__(self):

@@ -29,7 +29,7 @@ export function SummaryPage(props: { url: string }) {
 
     useEffect(() => {
         axios
-            .get(props.url + "list")
+            .get(props.url + "api/list")
             .then((response) => setData(sortSummaries(response.data)))
             .catch((error) => setError("Could not fetch data: " + error.message))
             .finally(() => setLoaded(true));
