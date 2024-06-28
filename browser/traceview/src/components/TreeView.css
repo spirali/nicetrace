@@ -1,3 +1,8 @@
+.nt-tree {
+    overflow: auto;
+    height: calc(100vh - 60px);
+}
+
 .nt-tree li {
     display: block;
     position: relative;

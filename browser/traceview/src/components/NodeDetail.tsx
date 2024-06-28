@@ -1,26 +1,44 @@
+import copy from "copy-to-clipboard";
 import { TracingNode } from "../model/Node";
 import { DataRenderer } from "./DataRenderer";
 import "./NodeDetail.css";
+import { useState } from "react";
 
-function InputBox(props: { name: string, value: unknown }) {
-    return (<div className="nt-box nt-input">
-        <div className="nt-box-title"><span className="nt-box-kind">Input</span> {props.name}<hr /></div>
-        <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);
+const dataToText = (obj: unknown): string => {
+    if (obj === null) {
+        return "None"
+    }
+    if (typeof obj === 'boolean') {
+        return obj ? "true" : "false"
+    }
+    if (typeof obj === 'number') {
+        return "" + obj
+    }
+    if (typeof obj === 'string') {
+        return obj
+    }
+    return JSON.stringify(obj, null, 2);
 }
 
+const copyToClipboard = (obj: unknown, setCopied: (x: boolean) => void) => {
+    console.log("COPY")
+    console.log(dataToText(obj))
+    if (copy(dataToText(obj))) {
+        setCopied(true)
+    }
+};
 
-function OutputBox(props: { value: unknown }) {
-    return (<div className="nt-box nt-output">
-        <div className="nt-box-title"><span className="nt-box-kind">Output</span><hr /></div>
+function DataBox(props: { className: string, typeName: string, name?: string, value: unknown }) {
+    const [copied, setCopied] = useState<boolean>(false);
+
+    return (<div className={"nt-box " + props.className}>
+        <div className="nt-box-title">
+            <span><span className="nt-box-kind">{props.typeName}</span> {props.name}</span>
+            <div>{copied ? "Copied " : null}<button onClick={() => copyToClipboard(props.value, setCopied)}>Copy</button></div>
+        </div>
+        <hr />
         <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);
 }
-
-function ErrorBox(props: { value: unknown }) {
-    return (<div className="nt-box nt-error-box">
-        <div className="nt-box-title"><span className="nt-box-kind">Error</span><hr /></div>
-        <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);
-}
-
 
 export function CounterBox(props: { value: string }) {
     return <span className="nt-counter-box">{props.value}</span>
@@ -53,17 +71,17 @@ export function NodeDetail(props: { node: TracingNode }) {
     if (node.inputs) {
         for (const property in node.inputs) {
             const value = node.inputs[property];
-            const element = <InputBox name={property} value={value} />;
+            const element = <DataBox key={props.node.uid + "/" + boxes.length} className="nt-input" name={property} typeName="Input" value={value} />;
             boxes.push(element);
         }
     }
 
     if (node.output !== undefined) {
-        boxes.push(<OutputBox value={node.output} />)
+        boxes.push(<DataBox key={props.node.uid + "/" + boxes.length} className="nt-output" typeName="Output" value={node.output} />)
     }
 
     if (node.error !== undefined) {
-        boxes.push(<ErrorBox value={node.error} />)
+        boxes.push(<DataBox key={props.node.uid + "/" + boxes.length} className="nt-error-box" typeName="Error" value={node.error} />)
     }
 
     const counters = new Map;

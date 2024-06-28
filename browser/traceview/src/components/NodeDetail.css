@@ -22,7 +22,8 @@
 }
 
 .nt-box-title {
-    /*font-weight: bold;*/
+    display: flex;
+    justify-content: space-between;
 }
 
 .nt-box-kind {

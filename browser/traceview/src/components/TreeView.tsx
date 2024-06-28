@@ -13,7 +13,7 @@ function TreeNode(props: { node: TracingNode, treeState: TreeState, setTreeState
     const isOpen = props.treeState.opened.has(node.uid);
     let children;
     if (isOpen && node.children && node.children.length > 0) {
-        children = <div className="nt-tree-children"><ul>{node.children.map((c) => <TreeNode node={c} treeState={props.treeState} setTreeState={props.setTreeState} />)}</ul></div>;
+        children = <div className="nt-tree-children"><ul>{node.children.map((c) => <TreeNode key={c.uid} node={c} treeState={props.treeState} setTreeState={props.setTreeState} />)}</ul></div>;
     }
     let color = node?.meta?.color;
     if (node.state === "error") {

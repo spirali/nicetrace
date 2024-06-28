@@ -14,6 +14,15 @@ function getAge(time: string | null): number | null {
     }
 }
 
+function getDuration(start: string | null, end: string | null): number | null {
+    if (start && end) {
+        return new Date(end).getTime() - new Date(start).getTime();
+    } else {
+        return null;
+    }
+}
+
+
 function StateLabel(props: { state: string }) {
     // let color;
     // if (props.state === "error") {
@@ -31,9 +40,10 @@ export function SummaryList(props: { summaries: Summary[] }) {
     return <table className="nt-summary-tab">
         <thead>
             <tr>
-                <th>Id</th>
+                <th>Storage Id</th>
                 <th>Name</th>
                 <th>State</th>
+                <th>Duration</th>
                 <th>Age</th>
                 <th>Finished at</th>
             </tr>
@@ -47,11 +57,13 @@ export function SummaryList(props: { summaries: Summary[] }) {
                 color = "orange";
             }
             const age = getAge(s.start_time);
-            return (<tr style={{ color }}>
+            const duration = getDuration(s.start_time, s.end_time)
+            return (<tr key={s.uid} style={{ color }}>
                 <td className="nt-summary-td"><Link to={"/traces/" + s.storage_id}>{s.storage_id}</Link></td>
                 <td>{s.name}</td>
                 <td><StateLabel state={s.state} /></td>
-                <td>{age ? humanReadableDuration(age) : null}</td>
+                <td>{duration ? humanReadableDuration(duration) : null}</td>
+                <td>{age ? humanReadableDuration(age) + " ago" : null}</td>
                 <td>{s.end_time}</td></tr>);
         })}
 
