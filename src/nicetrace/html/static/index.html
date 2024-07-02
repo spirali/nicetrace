@@ -3,21 +3,21 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/svg+xml" href="/assets/icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TraceView</title>
+  <title>Trace view</title>
   <script>
     function start() {
       let url = "%%%URL%%%";
       // Here we expect that serving code will replace %%%URL%%% pattern
       // If it is not replaced, then place a default here
       if (url.startsWith("%%%")) {
-        url = "http://localhost:6040/";
+        url = "http://localhost:4090/";
       }
       window.mountTraceManager(document.getElementById("root"), url)
     }
   </script>
-  <script type="module" crossorigin src="/assets/index-BmQr6TlY.js"></script>
+  <script type="module" crossorigin src="/assets/index-B5tKe3YY.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-UldCyfPa.css">
 </head>
 

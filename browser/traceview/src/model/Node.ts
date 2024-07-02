@@ -10,14 +10,18 @@ export interface Metadata {
     collapse?: string,
 }
 
+export interface Entry {
+    kind: string,
+    name?: string,
+    value: unknown,
+}
+
 export interface TracingNode {
     uid: string;
     name: string;
     kind?: string;
     state?: "open" | "error";
-    inputs?: any;
-    output?: any;
-    error?: any;
+    entries?: Entry[],
     meta?: Metadata;
     children?: TracingNode[];
     start_time?: string;

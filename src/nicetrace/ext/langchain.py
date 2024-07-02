@@ -51,9 +51,9 @@ try:
             node, token = self.running_nodes.pop(run_id.hex)
             generations = [g.text for gg in response.generations for g in gg]
             if len(generations) == 1:
-                node.set_output(generations[0])
+                node.add_output("", generations[0])
             else:
-                node.set_output(generations)
+                node.add_output("", generations)
             usage = response.llm_output["token_usage"]
             counters = {
                 "input_tokens": usage["prompt_tokens"],

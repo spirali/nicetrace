@@ -24,7 +24,7 @@ def test_tracing_node_basic():
         assert c.state == TracingNodeState.OPEN
         assert current_tracing_node() is c
         with trace("c1") as c2:
-            c2.set_output("blabla")
+            c2.add_output("", "blabla")
         assert c2.state == TracingNodeState.FINISHED
         with pytest.raises(TestException, match="well"):
             with trace("c2") as c2:
@@ -34,48 +34,65 @@ def test_tracing_node_basic():
         assert func1(10, 20) == 30
     assert c.state == TracingNodeState.FINISHED
     output = strip_tree(c.to_dict())
-    #  print(json.dumps(output, indent=2))
-    del output["children"][1]["error"]["traceback"]["frames"][0]
+    import json
+
+    print(json.dumps(output, indent=2))
+    del output["children"][1]["entries"][-1]["value"]["traceback"]["frames"][0]
     assert output == {
         "name": "Test",
         "kind": "root",
         "children": [
-            {"name": "c1", "output": "blabla"},
+            {
+                "name": "c1",
+                "entries": [{"kind": "output", "value": "blabla"}],
+            },
             {
                 "name": "c2",
                 "state": "error",
-                "error": {
-                    "_type": "TestException",
-                    "message": "Ah well",
-                    "traceback": {
-                        "_type": "$traceback",
-                        "frames": [
-                            {
-                                "name": "test_tracing_node_basic",
-                                "filename": __file__,
-                                "line": 'raise TestException("Ah well")',
+                "entries": [
+                    {
+                        "kind": "error",
+                        "value": {
+                            "_type": "TestException",
+                            "message": "Ah well",
+                            "traceback": {
+                                "_type": "$traceback",
+                                "frames": [
+                                    {
+                                        "name": "test_tracing_node_basic",
+                                        "filename": __file__,
+                                        "line": 'raise TestException("Ah well")',
+                                    },
+                                ],
                             },
-                        ],
+                        },
                     },
-                },
+                ],
             },
             {
                 "name": "func1",
                 "kind": "call",
-                "inputs": {"param1": 10, "param2": 20},
-                "output": 30,
+                "entries": [
+                    {"kind": "input", "name": "param1", "value": 10},
+                    {"kind": "input", "name": "param2", "value": 20},
+                    {"kind": "output", "value": 30},
+                ],
                 "children": [
                     {
                         "name": "<lambda>",
                         "kind": "call",
-                        "inputs": {"x": "abc"},
-                        "output": "abc",
+                        "entries": [
+                            {"kind": "input", "name": "x", "value": "abc"},
+                            {"kind": "output", "value": "abc"},
+                        ],
                     },
                     {
                         "name": "myfn",
                         "kind": "call",
-                        "inputs": {"x": "abc"},
-                        "output": "abc",
+                        "entries": [
+                            {"kind": "input", "name": "x", "value": "abc"},
+                            {"kind": "output", "value": "abc"},
+                        ],
                     },
                 ],
             },
@@ -99,48 +116,53 @@ def test_tracing_node_inner_exception():
 
     output = strip_tree(c.to_dict())
     # print(json.dumps(output, indent=2))
-    del output["error"]["traceback"]["frames"][0]
+    del output["entries"][-1]["value"]["traceback"]["frames"][0]
     assert output == {
         "name": "root",
         "state": "error",
-        "error": {
-            "_type": "Exception",
-            "message": "Exception 2",
-            "traceback": {
-                "_type": "$traceback",
-                "frames": [
-                    {
-                        "name": "test_tracing_node_inner_exception",
-                        "filename": __file__,
-                        "line": "f2()",
+        "entries": [
+            {
+                "kind": "error",
+                "value": {
+                    "_type": "Exception",
+                    "message": "Exception 2",
+                    "traceback": {
+                        "_type": "$traceback",
+                        "frames": [
+                            {
+                                "name": "test_tracing_node_inner_exception",
+                                "filename": __file__,
+                                "line": "f2()",
+                            },
+                            {
+                                "name": "f2",
+                                "filename": __file__,
+                                "line": 'raise Exception("Exception 2")',
+                            },
+                        ],
                     },
-                    {
-                        "name": "f2",
-                        "filename": __file__,
-                        "line": 'raise Exception("Exception 2")',
+                    "tracing": {
+                        "_type": "Exception",
+                        "message": "Exception 1",
+                        "traceback": {
+                            "_type": "$traceback",
+                            "frames": [
+                                {
+                                    "name": "f2",
+                                    "filename": __file__,
+                                    "line": "f1()",
+                                },
+                                {
+                                    "name": "f1",
+                                    "filename": __file__,
+                                    "line": 'raise Exception("Exception 1")',
+                                },
+                            ],
+                        },
                     },
-                ],
-            },
-            "tracing": {
-                "_type": "Exception",
-                "message": "Exception 1",
-                "traceback": {
-                    "_type": "$traceback",
-                    "frames": [
-                        {
-                            "name": "f2",
-                            "filename": __file__,
-                            "line": "f1()",
-                        },
-                        {
-                            "name": "f1",
-                            "filename": __file__,
-                            "line": 'raise Exception("Exception 1")',
-                        },
-                    ],
                 },
-            },
-        },
+            }
+        ],
     }
 
 
@@ -152,14 +174,23 @@ def test_tracing_dataclass():
 
     with trace("root") as c:
         c.add_input("my_input", MyData("Bob", 25))
-        c.set_output(MyData("Alice", 26))
+        c.add_output("", MyData("Alice", 26))
     assert c.state == TracingNodeState.FINISHED
     # with_new_context("ch3", lambda d: f"Hello {d.name}", Data(name="LLM"))
     output = strip_tree(c.to_dict())
     assert output == {
         "name": "root",
-        "inputs": {"my_input": {"_type": "MyData", "age": 25, "name": "Bob"}},
-        "output": {"name": "Alice", "age": 26, "_type": "MyData"},
+        "entries": [
+            {
+                "kind": "input",
+                "name": "my_input",
+                "value": {"_type": "MyData", "age": 25, "name": "Bob"},
+            },
+            {
+                "kind": "output",
+                "value": {"name": "Alice", "age": 26, "_type": "MyData"},
+            },
+        ],
     }
 
 
@@ -175,21 +206,32 @@ def test_tracing_node_add_inputs():
         with trace("child1", inputs={"z": 20}) as c2:
             c2.add_inputs({"x": 10, "y": a})
     output = strip_tree(c.to_dict())
-    # print(output)
+    print(output)
     assert output == {
         "name": "root",
         "children": [
             {
                 "name": "child1",
-                "inputs": {"x": 10, "y": {"_type": "A", "id": id(a)}},
+                "entries": [
+                    {"kind": "input", "value": 10, "name": "x"},
+                    {
+                        "kind": "input",
+                        "value": {"_type": "A", "id": id(a)},
+                        "name": "y",
+                    },
+                ],
             },
             {
                 "name": "child1",
-                "inputs": {
-                    "z": 20,
-                    "x": 10,
-                    "y": {"_type": "A", "id": id(a)},
-                },
+                "entries": [
+                    {"kind": "input", "value": 20, "name": "z"},
+                    {"kind": "input", "value": 10, "name": "x"},
+                    {
+                        "kind": "input",
+                        "value": {"_type": "A", "id": id(a)},
+                        "name": "y",
+                    },
+                ],
             },
         ],
     }
@@ -197,13 +239,15 @@ def test_tracing_node_add_inputs():
 
 def test_tracing_node_lists():
     with trace("root", inputs={"a": [1, 2, 3]}) as c:
-        c.set_output(["A", ["B", "C"]])
+        c.add_output("", ["A", ["B", "C"]])
     output = strip_tree(c.to_dict())
     print(output)
     assert output == {
         "name": "root",
-        "inputs": {"a": [1, 2, 3]},
-        "output": ["A", ["B", "C"]],
+        "entries": [
+            {"kind": "input", "value": [1, 2, 3], "name": "a"},
+            {"kind": "output", "value": ["A", ["B", "C"]]},
+        ],
     }
 
 
@@ -211,14 +255,17 @@ def test_tracing_node_instants():
     with trace("root") as c:
         trace_instant("Message to Alice", kind="message", inputs={"x": 10, "y": 20})
     output = strip_tree(c.to_dict())
-    # print(json.dumps(output, indent=2))
+    print(output)
     assert output == {
         "name": "root",
         "children": [
             {
                 "name": "Message to Alice",
                 "kind": "message",
-                "inputs": {"x": 10, "y": 20},
+                "entries": [
+                    {"kind": "input", "value": 10, "name": "x"},
+                    {"kind": "input", "value": 20, "name": "y"},
+                ],
             }
         ],
     }
@@ -238,18 +285,19 @@ async def test_async_tracing_node():
         await q2
 
     output = strip_tree(c.to_dict())
+    print(output)
     assert output == {
         "name": "root",
         "children": [
             {
                 "name": "make_queries",
                 "kind": "acall",
-                "output": "a",
+                "entries": [{"kind": "output", "value": "a"}],
             },
             {
                 "name": "make_queries",
                 "kind": "acall",
-                "output": "a",
+                "entries": [{"kind": "output", "value": "a"}],
             },
         ],
     }
@@ -281,12 +329,10 @@ def test_tracing_node_tags():
 )
 def test_to_dict(output):
     with trace("root") as c:
-        c.set_output(output)
-    assert c.output == output
-
+        c.add_output("", output)
     c_dict = c.to_dict()
     for key, c_dict_val in c_dict.items():
-        if key.startswith("_") or key == "version" or key == "interlab":
+        if key.startswith("_") or key == "version":
             # ignore private attributes or version attributes
             continue
         c_val = getattr(c, key)

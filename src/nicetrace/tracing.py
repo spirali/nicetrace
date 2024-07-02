@@ -6,10 +6,10 @@ import inspect
 from dataclasses import dataclass
 from enum import Enum
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from .utils.ids import generate_uid
-from .serialization import Data, serialize_with_type
+from .serialization import serialize_with_type
 
 TRACING_FORMAT_VERSION = "4"
 
@@ -46,7 +46,7 @@ class Metadata:
     icon: str | None = None
     color: str | None = None
     tags: list[Tag] | None = None
-    counters: Dict[str, int] | None = None
+    counters: dict[str, int] | None = None
     collapse: str | None = None
     custom: Any = None
 
@@ -65,7 +65,7 @@ class TracingNode:
         y = do_some_computation(x=1)
         # The tracing node would also note any exceptions raised here
         # (letting it propagate upwards), but an output needs to be set manually:
-        c.set_output(y)
+        c.add_output("", y)
     # <- Here the tracing node is already closed.
     ```
     """
@@ -74,9 +74,7 @@ class TracingNode:
         self,
         name: str,
         kind: Optional[str] = None,
-        inputs: Optional[Dict[str, Any]] = None,
         meta: Optional[Metadata] = None,
-        output=None,
         lock=None,
         is_instant=False,
     ):
@@ -89,24 +87,14 @@ class TracingNode:
         - `output` - The output value of the tracing node, if it has already been computed.
         """
 
-        if inputs:
-            assert isinstance(inputs, dict)
-            assert all(isinstance(key, str) for key in inputs)
-            inputs = serialize_with_type(inputs)
-
         if meta:
             assert isinstance(meta, Metadata)
 
-        if output:
-            output = serialize_with_type(output)
-
         self.name = name
         self.kind = kind
-        self.inputs = inputs
-        self.output = output
-        self.error = None
         self.uid = generate_uid()
-        self.children: List[TracingNode] = []
+        self.entries: list | None = None
+        self.children: list[TracingNode] | None = None
         if is_instant:
             self.start_time = None
             self.end_time = datetime.now()
@@ -122,14 +110,14 @@ class TracingNode:
         result = {"name": self.name, "uid": self.uid}
         if self.state != TracingNodeState.FINISHED:
             result["state"] = self.state.value
-        for name in "kind", "output", "error":
+        for name in "kind", "entries":
             value = getattr(self, name)
             if value is not None:
                 result[name] = value
-        if (
-            self.inputs
-        ):  # We cannot use cycle above, because we want to get rid also empty dict
-            result["inputs"] = self.inputs
+        if self.kind:
+            result["kind"] = self.kind
+        if self.entries:
+            result["entries"] = self.entries
         if self.children:
             result["children"] = [c._to_dict() for c in self.children]
         if self.start_time:
@@ -164,56 +152,58 @@ class TracingNode:
         self,
         name: str,
         kind: Optional[str] = None,
-        inputs: Optional[Any] = None,
-        output: Optional[Any] = None,
+        inputs: Optional[dict[str, Any]] = None,
         meta: Optional[Metadata] = None,
     ) -> "TracingNode":
         node = TracingNode(
             name=name,
             kind=kind,
-            inputs=inputs,
-            output=output,
             meta=meta,
             is_instant=True,
         )
+        if inputs:
+            for key, value in inputs.items():
+                node._add_entry("input", key, value)
         with self._lock:
+            if self.children is None:
+                self.children = []
             self.children.append(node)
         return node
 
-    def add_input(self, name: str, value: object):
+    def add_entry(self, kind: str, name: str, value: object):
         """
-        Add a named input value to the tracing node.
-
-        If an input of the same name already exists, an exception is raised.
+        Add a entry into the node.
         """
         with self._lock:
-            if self.inputs is None:
-                self.inputs = {}
-            if name in self.inputs:
-                raise Exception(f"Input {name} already exists")
-            self.inputs[name] = serialize_with_type(value)
+            self._add_entry(kind, name, value)
+
+    def _add_entry(self, kind: str, name: str, value: object):
+        if self.entries is None:
+            self.entries = []
+        entry = {"kind": kind, "value": serialize_with_type(value)}
+        if name:
+            entry["name"] = name
+        self.entries.append(entry)
+
+    def add_input(self, name: str, value: object):
+        """
+        A shortcut for .add_entry(entry_type="input")
+        """
+        self.add_entry("input", name, value)
 
     def add_inputs(self, inputs: dict[str, object]):
         """
-        Add a new input values to the tracing node.
-
-        If an input of the same name already exists, an exception is raised.
+        A shortcut for calling multiple .add_entry(entry_type="input")
         """
         with self._lock:
-            if self.inputs is None:
-                self.inputs = {}
-            for name in inputs:
-                if name in self.inputs:
-                    raise Exception(f"Input {name} already exists")
-            for name, value in inputs.items():
-                self.inputs[name] = serialize_with_type(value)
+            for key, value in inputs.items():
+                self._add_entry("input", key, value)
 
-    def set_output(self, value: Any):
+    def add_output(self, name: str, value: Any):
         """
-        Set the output value of the tracing node.
+        A shortcut for .add_entry(entry_type="output")
         """
-        with self._lock:
-            self.output = serialize_with_type(value)
+        self.add_entry("output", name, value)
 
     def set_error(self, exc: Any):
         """
@@ -221,9 +211,9 @@ class TracingNode:
         """
         with self._lock:
             self.state = TracingNodeState.ERROR
-            self.error = serialize_with_type(exc)
+            self._add_entry("error", "", exc)
 
-    def find_nodes(self, predicate: Callable) -> List["TracingNode"]:
+    def find_nodes(self, predicate: Callable) -> list["TracingNode"]:
         """
         Find all nodes matching the given callable `predicate`.
 
@@ -263,7 +253,7 @@ class TracingNode:
 def start_trace_block(
     name: str,
     kind: Optional[str] = None,
-    inputs: Optional[Dict[str, Any]] = None,
+    inputs: Optional[dict[str, Any]] = None,
     meta: Optional[Metadata] = None,
     writer: Optional["TraceWriter"] = None,
 ) -> tuple[TracingNode, Any]:
@@ -274,13 +264,19 @@ def start_trace_block(
     else:
         parent = None
         lock = Lock()
-    node = TracingNode(name, kind, inputs, meta, lock=lock)
+    node = TracingNode(name, kind, meta, lock=lock)
+    if inputs:
+        for key, value in inputs.items():
+            # We do not have hold lock, as node is private for us now
+            node._add_entry("input", key, value)
     token = _TRACING_STACK.set(parents + (node,))
     if writer is None:
         writer = get_current_writer()
     if parent:
         with lock:
             assert parent.state == TracingNodeState.OPEN
+            if parent.children is None:
+                parent.children = []
             parent.children.append(node)
         if writer:
             writer.write_node(parents[0], False)
@@ -298,7 +294,7 @@ def end_trace_block(node, token, error, writer=None):
                 node.state = TracingNodeState.FINISHED
             else:
                 node.state = TracingNodeState.ERROR
-                node.error = serialize_with_type(error)
+                node._add_entry("error", "", error)
         node.end_time = datetime.now()
     if writer is None:
         writer = get_current_writer()
@@ -314,7 +310,7 @@ def end_trace_block(node, token, error, writer=None):
 def trace(
     name: str,
     kind: str | None = None,
-    inputs: Dict[str, Any] | None = None,
+    inputs: dict[str, Any] | None = None,
     meta: Metadata | None = None,
     writer: Optional["TraceWriter"] = None,
 ):
@@ -330,11 +326,11 @@ def trace(
 def trace_instant(
     name: str,
     kind: Optional[str] = None,
-    inputs: Optional[Dict[str, Any]] = None,
+    inputs: Optional[dict[str, Any]] = None,
     output: Optional[Any] = None,
     meta: Optional[Metadata] = None,
 ):
-    return current_tracing_node().add_instant(name, kind, inputs, output, meta)
+    return current_tracing_node().add_instant(name, kind, inputs, meta)
 
 
 def with_trace(
@@ -374,7 +370,7 @@ def with_trace(
                 meta=meta,
             ) as node:
                 output = func(*a, **kw)
-                node.set_output(output)
+                node.add_output("", output)
                 return output
 
         async def async_wrapper(*a, **kw):
@@ -385,7 +381,7 @@ def with_trace(
                 inputs=binding.arguments,
             ) as node:
                 output = await func(*a, **kw)
-                node.set_output(output)
+                node.add_output("", output)
                 return output
 
         if inspect.iscoroutinefunction(func):

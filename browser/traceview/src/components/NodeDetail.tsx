@@ -1,8 +1,9 @@
 import copy from "copy-to-clipboard";
-import { TracingNode } from "../model/Node";
+import { Entry, TracingNode } from "../model/Node";
 import { DataRenderer } from "./DataRenderer";
 import "./NodeDetail.css";
 import { useState } from "react";
+import { GiEntryDoor } from "react-icons/gi";
 
 const dataToText = (obj: unknown): string => {
     if (obj === null) {
@@ -28,16 +29,27 @@ const copyToClipboard = (obj: unknown, setCopied: (x: boolean) => void) => {
     }
 };
 
-function DataBox(props: { className: string, typeName: string, name?: string, value: unknown }) {
+function DataBox(props: { entry: Entry }) {
     const [copied, setCopied] = useState<boolean>(false);
+    const entry = props.entry;
+    let className;
+    if (entry.kind == "error") {
+        className = "nt-error-box";
+    } else if (entry.kind == "output") {
+        className = "nt-output";
+    } else {
+        className = "nt-input"
+    }
 
-    return (<div className={"nt-box " + props.className}>
+    const kind = entry.kind.charAt(0).toUpperCase() + entry.kind.slice(1);
+
+    return (<div className={"nt-box " + className}>
         <div className="nt-box-title">
-            <span><span className="nt-box-kind">{props.typeName}</span> {props.name}</span>
-            <div>{copied ? "Copied " : null}<button onClick={() => copyToClipboard(props.value, setCopied)}>Copy</button></div>
+            <span><span className="nt-box-kind">{kind}</span> {entry.name}</span>
+            <div>{copied ? "Copied " : null}<button onClick={() => copyToClipboard(entry.value, setCopied)}>Copy</button></div>
         </div>
         <hr />
-        <div className="nt-box-content"><DataRenderer data={props.value} /></div></div>);
+        <div className="nt-box-content"><DataRenderer data={entry.value} /></div></div>);
 }
 
 export function CounterBox(props: { value: string }) {
@@ -67,23 +79,6 @@ function collectCounters(node: TracingNode, map: Map<string, number>) {
 
 export function NodeDetail(props: { node: TracingNode }) {
     const node = props.node;
-    const boxes = [];
-    if (node.inputs) {
-        for (const property in node.inputs) {
-            const value = node.inputs[property];
-            const element = <DataBox key={props.node.uid + "/" + boxes.length} className="nt-input" name={property} typeName="Input" value={value} />;
-            boxes.push(element);
-        }
-    }
-
-    if (node.output !== undefined) {
-        boxes.push(<DataBox key={props.node.uid + "/" + boxes.length} className="nt-output" typeName="Output" value={node.output} />)
-    }
-
-    if (node.error !== undefined) {
-        boxes.push(<DataBox key={props.node.uid + "/" + boxes.length} className="nt-error-box" typeName="Error" value={node.error} />)
-    }
-
     const counters = new Map;
     collectCounters(node, counters);
     let counterPanel;
@@ -91,5 +86,5 @@ export function NodeDetail(props: { node: TracingNode }) {
         const entries = [...counters.entries()];
         counterPanel = <div className="nt-counters">{entries.map(([key, value]) => <CounterBox value={key + ": " + value} />)}</div>
     }
-    return <div>{counterPanel}{boxes}</div>
+    return <div>{counterPanel}{props.node.entries ? props.node.entries.map((e, i) => <DataBox key={props.node.uid + "/" + i} entry={e} />) : null}</div>
 }
