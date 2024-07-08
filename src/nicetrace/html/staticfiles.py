@@ -12,12 +12,20 @@ def read_index():
         return f.read()
 
 
-# def get_current_js_and_css_filenames():
-#     js = [filename for filename in STATIC_FILES if filename.endswith(".js")]
-#     assert len(js) == 1
-#     css = [filename for filename in STATIC_FILES if filename.endswith(".css")]
-#     assert len(css) == 1
-#     return js[0], css[0]
+def get_current_js_and_css_filenames():
+    js = [
+        os.path.basename(filename)
+        for filename in STATIC_FILES
+        if filename.endswith(".js")
+    ]
+    assert len(js) == 1
+    css = [
+        os.path.basename(filename)
+        for filename in STATIC_FILES
+        if filename.endswith(".css")
+    ]
+    assert len(css) == 1
+    return js[0], css[0]
 
 
 # def copy_static_files(target_path: str):

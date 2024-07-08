@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 
-def _write_file(filename: str, data: str):
+def write_file(filename: str | os.PathLike, data: str):
     tmp_filename = f".{uuid.uuid4().hex}._tmp"
     try:
         with open(tmp_filename, "w") as f:
@@ -98,7 +98,7 @@ class DirWriter(DelayedWriter):
 
     def _write_node_to_file(self, node):
         json_data = json.dumps(node.to_dict())
-        _write_file(os.path.join(self.path, f"trace-{node.uid}.json"), json_data)
+        write_file(os.path.join(self.path, f"trace-{node.uid}.json"), json_data)
 
     def write_node(self, node: TracingNode, final: bool):
         with self.lock:
@@ -122,7 +122,7 @@ class FileWriter(DelayedWriter):
 
     def _write_node_to_file(self, node):
         json_data = json.dumps(node.to_dict())
-        _write_file(self.filename, json_data)
+        write_file(self.filename, json_data)
 
     def write_node(self, node: TracingNode, final: bool):
         with self.lock:

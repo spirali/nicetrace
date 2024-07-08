@@ -18,6 +18,7 @@ from .data.blob import DataWithMime
 from .writer.base import get_current_writer, TraceWriter
 from .writer.filewriter import DirWriter, FileWriter
 from .reader.filereader import DirReader
+from .html.statichtml import get_html, write_html
 
 __all__ = [
     "trace",
@@ -38,4 +39,6 @@ __all__ = [
     "DirWriter",
     "FileWriter",
     "DirReader",
+    "get_html",
+    "write_html",
 ]
