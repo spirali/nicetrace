@@ -10,6 +10,10 @@ _TRACE_WRITER: ContextVar[Optional["TraceWriter"]] = ContextVar(
 
 
 class TraceWriter(ABC):
+    """
+    Abstract base class for all trace writers.
+    """
+
     @abstractmethod
     def write_node(self, node: TracingNode, final: bool):
         raise NotImplementedError()
@@ -36,5 +40,8 @@ class TraceWriter(ABC):
         _TRACE_WRITER.reset(self.__token)
 
 
-def get_current_writer() -> TraceWriter | None:
+def current_writer() -> TraceWriter | None:
+    """
+    Get the current global writer.
+    """
     return _TRACE_WRITER.get()

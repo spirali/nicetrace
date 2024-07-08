@@ -1,26 +1,16 @@
-<p align="center">
-    <img width="160" src="docs/imgs/logo.png">
-</p>
-
 # NiceTrace
+
+<p align="center">
+    <img width="160" src="imgs/logo.png">
+</p>
 
 NiceTrace is a Python module for user-friendly structured tracing and elegant display of resulting traces. 
 Traces are stored as plain JSON files. NiceTrace support exploring traces of running process. 
 While designed for generic usage, it's particularly well-suited for tracing experiments with Large Language Models (LLMs).
 
 <p align="center">
-    <img width="100%" src="docs/imgs/nicetrace_screenshot.png">
+    <img width="100%" src="imgs/nicetrace_screenshot.png">
 </p>
-
-## Installation
-
-```bash
-# For tracing only
-pip install nicetrace
-
-# For tracing & displaying traces
-pip install nicetrace[server]
-```
 
 ## Getting started
 
@@ -43,8 +33,7 @@ python3 -m nicetrace.server traces
 
 Then, open your web browser and navigate to http://localhost:4090 to view your traces.
 
-
 <p align="center">
-    <img width="80%" src="docs/imgs/helloworld_screenshot.png">
+    <img width="80%" src="imgs/helloworld_screenshot.png">
 </p>
 

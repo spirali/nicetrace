@@ -98,8 +98,14 @@ T = TypeVar("T")
 
 
 def register_custom_serializer(cls: type[T], serialize_fn: Callable[[T], Data]):
+    """
+    Register a custom serializer for a given type
+    """
     CUSTOM_SERIALIZERS[cls] = serialize_fn
 
 
 def unregister_custom_serializer(cls):
+    """
+    Unregister a custom serializer for a given type
+    """
     CUSTOM_SERIALIZERS.pop(cls, None)

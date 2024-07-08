@@ -43,6 +43,10 @@ class Tag:
 
 @dataclass
 class Metadata:
+    """
+    Metadata of tracing, allows to set colors and icons when TracingNode is visualized
+    """
+
     icon: str | None = None
     color: str | None = None
     tags: list[Tag] | None = None
@@ -54,20 +58,6 @@ class Metadata:
 class TracingNode:
     """
     A tracing object that represents a single request or (sub)task in a nested hierarchy.
-
-    The class has several attributes that are intended as read-only; use setters to modify them.
-
-    The `TracingNode` can be used as context manager, e.g.:
-
-    ```python
-    with TracingNode("my node", inputs={"z": 42}) as c:
-        c.add_input("x", 1)
-        y = do_some_computation(x=1)
-        # The tracing node would also note any exceptions raised here
-        # (letting it propagate upwards), but an output needs to be set manually:
-        c.add_output("", y)
-    # <- Here the tracing node is already closed.
-    ```
     """
 
     def __init__(
@@ -237,23 +227,6 @@ class TracingNode:
 
         return get_inline_html(self)
 
-    # def write_html(self, filename: str):
-    #     from ..ui.staticview import create_node_static_page
-
-    #     html = create_node_static_page(self)
-    #     with open(filename, "w") as f:
-    #         f.write(html)
-
-    # def display(self):
-    #     """Show tracing in Jupyter notebook"""
-    #     from IPython.core.display import HTML
-    #     from IPython.display import display
-
-    #     from ..ui.staticview import create_node_static_html
-
-    #     html = create_node_static_html(self)
-    #     display(HTML(html))
-
 
 def start_trace_block(
     name: str,
@@ -276,7 +249,7 @@ def start_trace_block(
             node._add_entry("input", key, value)
     token = _TRACING_STACK.set(parents + (node,))
     if writer is None:
-        writer = get_current_writer()
+        writer = current_writer()
     if parent:
         with lock:
             assert parent.state == TracingNodeState.OPEN
@@ -302,7 +275,7 @@ def end_trace_block(node, token, error, writer=None):
                 node._add_entry("error", "", error)
         node.end_time = datetime.now()
     if writer is None:
-        writer = get_current_writer()
+        writer = current_writer()
     if writer:
         parents = _TRACING_STACK.get()
         if parents:
@@ -319,6 +292,18 @@ def trace(
     meta: Metadata | None = None,
     writer: Optional["TraceWriter"] = None,
 ):
+    """
+    The main function that creates a tracing context manager. Returns an instance of `TracingNode`.
+    ```python
+    with trace("my node", inputs={"z": 42}) as c:
+        c.add_input("x", 1)
+        y = do_some_computation(x=1)
+        # The tracing node would also note any exceptions raised here
+        # (letting it propagate upwards), but an output needs to be set manually:
+        c.add_output("", y)
+    # <- Here the tracing node is already closed.
+    ```
+    """
     node, token = start_trace_block(name, kind, inputs, meta, writer)
     try:
         yield node
@@ -335,6 +320,9 @@ def trace_instant(
     output: Optional[Any] = None,
     meta: Optional[Metadata] = None,
 ):
+    """
+    Trace an instant event that does not have a duration.
+    """
     return current_tracing_node().add_instant(name, kind, inputs, meta)
 
 
@@ -416,4 +404,4 @@ def current_tracing_node(check: bool = True) -> Optional[TracingNode]:
     return stack[-1]
 
 
-from .writer.base import get_current_writer, TraceWriter
+from .writer.base import current_writer, TraceWriter

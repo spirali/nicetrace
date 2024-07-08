@@ -31,7 +31,6 @@ try:
             else:
                 inputs["prompts"] = prompts
             inputs["config"] = metadata
-            print("METADATA", metadata)
             pair = start_trace_block(
                 f"Query {metadata['ls_model_name']}",
                 kind="query",
@@ -74,6 +73,7 @@ try:
         ) -> None:
             node, token = self.running_nodes.pop(run_id.hex)
             end_trace_block(node, token, None)
+
 except ImportError:
     # Langchain not installed
     pass

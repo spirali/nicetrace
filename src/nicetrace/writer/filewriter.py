@@ -89,6 +89,12 @@ class DelayedWriter(TraceWriter):
 
 
 class DirWriter(DelayedWriter):
+    """
+    Writes JSON serialized trace into a given directory.
+    Trace is saved under filename trace-<ID>.json.
+    It allows to write multiple traces at once.
+    """
+
     def __init__(
         self, path: str, min_write_delay: timedelta = timedelta(milliseconds=300)
     ):
@@ -106,6 +112,12 @@ class DirWriter(DelayedWriter):
 
 
 class FileWriter(DelayedWriter):
+    """
+    Write JSON serialized trace into given file.
+    It allows to write only one trace at time.
+    It throws an error if more then one top-level trace node is created at once.
+    """
+
     def __init__(
         self, filename: str, min_write_delay: timedelta = timedelta(milliseconds=300)
     ):

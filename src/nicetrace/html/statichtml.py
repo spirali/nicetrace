@@ -59,6 +59,7 @@ def get_full_html(node: TracingNode) -> str:
 
 
 def write_html(node: TracingNode, filename: str | os.PathLike):
+    """Write a `TracingNode` as static HTML file"""
     write_file(filename, get_full_html(node))
 
 

@@ -6,6 +6,10 @@ import json
 
 
 class DirReader(TraceReader):
+    """
+    Reads a traces from a given directory.
+    """
+
     def __init__(self, path: str):
         if not os.path.isdir(path):
             raise Exception(f"Path '{path}' does not exists")

@@ -1,17 +1,17 @@
-from nicetrace import get_current_writer, DirWriter, FileWriter
+from nicetrace import current_writer, DirWriter, FileWriter
 from nicetrace import trace
 import json
 import time
 
 
 def test_writer_contextvar(tmp_path):
-    assert get_current_writer() is None
+    assert current_writer() is None
     with DirWriter(tmp_path / "one") as w1:
-        assert get_current_writer() is w1
+        assert current_writer() is w1
         with DirWriter(tmp_path / "two") as w2:
-            assert get_current_writer() is w2
-        assert get_current_writer() is w1
-    assert get_current_writer() is None
+            assert current_writer() is w2
+        assert current_writer() is w1
+    assert current_writer() is None
 
 
 def test_dir_writer_json_delayed(tmp_path):
