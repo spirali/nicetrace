@@ -5,12 +5,16 @@
 # NiceTrace
 
 NiceTrace is a Python module for user-friendly structured tracing and elegant display of resulting traces. 
-Traces are stored as plain JSON files. NiceTrace support exploring traces of running process. 
+Traces are stored as plain JSON files. NiceTrace support exploring traces of running processes. 
 While designed for generic usage, it's particularly well-suited for tracing experiments with Large Language Models (LLMs).
 
 <p align="center">
     <img width="100%" src="docs/imgs/nicetrace_screenshot.png">
 </p>
+
+## Documentation
+
+* [Documentation](https://spirali.github.io/nicetrace/latest/)
 
 ## Installation
 
