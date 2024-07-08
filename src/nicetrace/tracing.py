@@ -232,6 +232,11 @@ class TracingNode:
             _helper(self)
         return result
 
+    def _repr_html_(self):
+        from .html.statichtml import get_inline_html
+
+        return get_inline_html(self)
+
     # def write_html(self, filename: str):
     #     from ..ui.staticview import create_node_static_page
 

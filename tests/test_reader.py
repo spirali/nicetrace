@@ -42,8 +42,8 @@ def test_reader_finished(tmp_path):
             "name": "Second",
             "state": "finished",
         },
-        f"hello1": {
-            "storage_id": f"hello1",
+        "hello1": {
+            "storage_id": "hello1",
             "uid": t3.uid,
             "name": "Hello",
             "state": "finished",
@@ -52,7 +52,7 @@ def test_reader_finished(tmp_path):
 
     assert reader.read_trace(f"trace-{t1.uid}") == t1.to_dict()
     assert reader.read_trace(f"trace-{t2.uid}") == t2.to_dict()
-    assert reader.read_trace(f"hello1") == t3.to_dict()
+    assert reader.read_trace("hello1") == t3.to_dict()
 
     t = {x["storage_id"]: strip_summary(x) for x in reader.list_summaries()}
     assert s == t

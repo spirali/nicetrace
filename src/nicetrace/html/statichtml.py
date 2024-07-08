@@ -1,10 +1,12 @@
 from nicetrace import TracingNode
 import os
+import json
+import uuid
 
 from ..writer.filewriter import write_file
 from .staticfiles import get_current_js_and_css_filenames
 
-CDN_VERSION = "22b384eccbf28d3df7ffe008efeb871c066d3811"
+CDN_VERSION = "3f6c292e7e0b483c33e2a01e8be70c5f43f0d4a8"
 CDN_URL = f"https://cdn.jsdelivr.net/gh/spirali/nicetrace@{CDN_VERSION}/src/nicetrace/html/static/"
 
 HTML_TEMPLATE = """<!doctype html>
@@ -31,20 +33,36 @@ HTML_TEMPLATE = """<!doctype html>
 
 </html>"""
 
+INLINE_HTML_TEMPLATE = """
+<div id="{id}"></div>
+<script src="{url_js}"></script>
+<link rel="stylesheet" href="{url_css}">
+<script>
+import("{url_js}").then(() => window.mountTraceView(document.getElementById("{id}"), {node_json}));
+</script>
+"""
 
-def get_static_cdn_html(node_json) -> str:
+
+def get_static_cdn_html(template, node_json) -> str:
     js_path, css_path = get_current_js_and_css_filenames()
     url_js = CDN_URL + js_path
     url_css = CDN_URL + css_path
     url_icon = CDN_URL + "icon.svg"
-    return HTML_TEMPLATE.format(
+    return template.format(
         node_json=node_json, url_js=url_js, url_css=url_css, url_icon=url_icon
     )
 
 
-def get_html(node: TracingNode) -> str:
-    return get_static_cdn_html(node.to_dict())
+def get_full_html(node: TracingNode) -> str:
+    node_json = json.dumps(node.to_dict())
+    return get_static_cdn_html(HTML_TEMPLATE, node_json)
 
 
 def write_html(node: TracingNode, filename: str | os.PathLike):
-    write_file(filename, get_html(node))
+    write_file(filename, get_full_html(node))
+
+
+def get_inline_html(node: TracingNode) -> str:
+    node_json = json.dumps(node.to_dict())
+    template = INLINE_HTML_TEMPLATE.replace("{id}", uuid.uuid4().hex)
+    return get_static_cdn_html(template, node_json)
