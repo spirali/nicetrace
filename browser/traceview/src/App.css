@@ -9,13 +9,13 @@ button {
   display: inline-block;
   outline: 0;
   cursor: pointer;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px 0 rgb(213 217 217 / 50%);
+  border-radius: 6px;
+  box-shadow: 0 2px 2px 0 rgb(213 217 217 / 50%);
   background: #FFF;
   border: 1px solid #D5D9D9;
-  font-size: 13px;
-  height: 31px;
-  padding: 0 11px;
+  font-size: 12px;
+  height: 20px;
+  padding: 0 12px;
   text-align: center;
   font-weight: 400;
   color: #0F1111;
