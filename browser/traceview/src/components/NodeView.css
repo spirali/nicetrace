@@ -27,6 +27,7 @@
 
 .nt-action-icon {
     margin: 0.75em;
+    cursor: url(hand.cur), pointer;
 }
 
 a.nt-action-link,

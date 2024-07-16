@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BarLoader from "react-spinners/BarLoader";
 import { useParams } from "react-router-dom";
 import { NodeView } from "./NodeView";
@@ -11,13 +11,17 @@ export function TracePage(props: { url: string }) {
     const [error, setError] = useState<string | null>(null);
     const [loaded, setLoaded] = useState(false);
 
-    useEffect(() => {
+    const reload = useCallback(() => {
         axios
             .get(props.url + "api/traces/" + traceId)
             .then((response) => setData(response.data))
             .catch((error) => setError("Could not fetch data: " + error.message))
             .finally(() => setLoaded(true));
-    }, [props.url, traceId]);
+    }, [props.url, traceId])
+
+    useEffect(() => {
+        reload()
+    }, [reload]);
 
     if (!loaded) {
         return <BarLoader style={{ margin: "auto" }} />
@@ -26,5 +30,5 @@ export function TracePage(props: { url: string }) {
         return <div className="nt-app-error">Error: {error}</div>
     }
 
-    return <NodeView root={data!} enableActions={true} />
+    return <NodeView root={data!} enableActions={true} reload={reload} />
 }

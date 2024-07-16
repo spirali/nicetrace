@@ -4,6 +4,7 @@ import { TracingNode } from '../model/Node'
 import { NodeDetail } from './NodeDetail';
 import { createNodeIcon } from '../common/icons';
 import { PiArrowFatLeftFill } from "react-icons/pi";
+import { TbReload } from "react-icons/tb";
 
 import "./NodeView.css"
 import { Link } from 'react-router-dom';
@@ -54,11 +55,12 @@ function collapseNode(node: TracingNode): TracingNode {
     }
 }
 
-function Actions() {
-    return <div className="nt-actions"><Link to="/" className='nt-action-link'><PiArrowFatLeftFill className="nt-action-icon" size={28} /></Link></div >
+function Actions(props: { reload: () => void }) {
+    return (<div className="nt-actions"><Link to="/" className='nt-action-link'><PiArrowFatLeftFill className="nt-action-icon" size={28} /></Link>
+        <a className="nt-action-link" onClick={() => props.reload()}><TbReload className="nt-action-icon" size={28} /></a></div >)
 }
 
-export function NodeView(props: { root: TracingNode, enableActions: boolean }) {
+export function NodeView(props: { root: TracingNode, enableActions: boolean, reload?: () => void }) {
     const cRoot = useMemo(() => collapseNode(props.root), [props.root]);
     const [state, setState] = useState<TreeState>(() => {
         const opened = new Set<string>;
@@ -72,7 +74,7 @@ export function NodeView(props: { root: TracingNode, enableActions: boolean }) {
     });
     return (
         <div className="nt-root-container">
-            <div className='nt-panel'>{props.enableActions ? <Actions /> : null}<TreeView root={cRoot} treeState={state} setTreeState={setState} /></div>
+            <div className='nt-panel'>{props.enableActions ? <Actions reload={props.reload!} /> : null}<TreeView root={cRoot} treeState={state} setTreeState={setState} /></div>
             <div className='nt-main-content'>
                 <h1>{createNodeIcon(state.selected)}{state.selected.name}</h1>
                 <NodeDetail node={state.selected} />
