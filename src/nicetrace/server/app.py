@@ -67,15 +67,23 @@ def start_server_in_jupyter(reader: TraceReader, port: int = 4090, debug: bool =
         from google.colab.output import eval_js
 
         server_name = str(eval_js(f"google.colab.kernel.proxyPort({port})"))
+        print(f"Running at {server_name}")
         host = "0.0.0.0"
+        verbose = False
     except ImportError:
         # Running in normal jupyter notebook
         server_name = None
         host = "localhost"
+        verbose = True
     jobs = bg.BackgroundJobManager()
     jobs.new(
         lambda: start_server(
-            reader, port=port, debug=debug, server_name=server_name, host=host
+            reader,
+            port=port,
+            debug=debug,
+            server_name=server_name,
+            host=host,
+            verbose=verbose,
         )
     )
 
