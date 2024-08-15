@@ -54,12 +54,22 @@ try:
                 node.add_output("", generations[0])
             else:
                 node.add_output("", generations)
-            usage = response.llm_output["token_usage"]
-            counters = {
-                "input_tokens": usage["prompt_tokens"],
-                "output_tokens": usage["completion_tokens"],
-            }
-            node.meta.counters = counters
+
+            counters = None
+            if "token_usage" in response.llm_output:
+                usage = response.llm_output["token_usage"]
+                counters = {
+                    "input_tokens": usage.get("prompt_tokens", 0),
+                    "output_tokens": usage.get("completion_tokens", 0),
+                }
+            elif "usage" in response.llm_output:
+                usage = response.llm_output["usage"]
+                counters = {
+                    "input_tokens": usage.get("input_tokens", 0),
+                    "output_tokens": usage.get("output_tokens", 0),
+                }
+            if counters:
+                node.meta.counters = counters
             end_trace_block(node, token, None)
 
         def on_llm_error(
