@@ -30,9 +30,15 @@ try:
                 inputs["prompt"] = prompts[0]
             else:
                 inputs["prompts"] = prompts
-            inputs["config"] = metadata
+
+            if "kwargs" in serialized and "model_name" in serialized["kwargs"]:
+                model_name = serialized["kwargs"]["model_name"]
+            else:
+                model_name = metadata.get("ls_model_name")
+            # inputs["serialized"] = serialized
+            inputs["metadata"] = metadata
             pair = start_trace_block(
-                f"Query {metadata['ls_model_name']}",
+                f"Query {model_name}",
                 kind="query",
                 inputs=inputs,
                 meta=Metadata(icon="query"),
