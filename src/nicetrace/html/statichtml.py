@@ -6,7 +6,7 @@ import uuid
 from ..writer.filewriter import write_file
 from .staticfiles import get_current_js_and_css_filenames
 
-CDN_VERSION = "38d1f4838234154b08e35c4a7550935193fa4de3"
+CDN_VERSION = "d91c60c21ae2e7a900a77507b474028185545691"
 CDN_URL = f"https://cdn.jsdelivr.net/gh/spirali/nicetrace@{CDN_VERSION}/src/nicetrace/html/static/"
 
 HTML_TEMPLATE = """<!doctype html>
