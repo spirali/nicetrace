@@ -22,8 +22,6 @@ const dataToText = (obj: unknown): string => {
 }
 
 const copyToClipboard = (obj: unknown, setCopied: (x: boolean) => void) => {
-    console.log("COPY")
-    console.log(dataToText(obj))
     if (copy(dataToText(obj))) {
         setCopied(true)
     }
@@ -46,7 +44,7 @@ function DataBox(props: { entry: Entry }) {
     return (<div className={"nt-box " + className}>
         <div className="nt-box-title">
             <span><span className="nt-box-kind">{kind}</span> {entry.name}</span>
-            <div>{copied ? "Copied " : null}<button onClick={() => copyToClipboard(entry.value, setCopied)}>Copy</button></div>
+            <div>{copied ? "Copied " : null}<button className="small-button" onClick={() => copyToClipboard(entry.value, setCopied)}>Copy</button></div>
         </div>
         <hr />
         <div className="nt-box-content"><DataRenderer data={entry.value} /></div></div>);

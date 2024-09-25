@@ -35,7 +35,7 @@ try:
                 model_name = serialized["kwargs"]["model_name"]
             else:
                 model_name = metadata.get("ls_model_name")
-            # inputs["serialized"] = serialized
+            inputs["serialized"] = serialized
             inputs["metadata"] = metadata
             pair = start_trace_block(
                 f"Query {model_name}",
