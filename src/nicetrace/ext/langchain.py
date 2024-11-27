@@ -10,6 +10,17 @@ from ..tracing import start_trace_block, end_trace_block, Metadata
 try:
     from langchain_core.callbacks.base import BaseCallbackHandler
 
+    def response_to_output(response):
+        if hasattr(response.message, "tool_calls") and response.message.tool_calls:
+            result = [call["args"] for call in response.message.tool_calls]
+            if len(result) == 1:
+                return result[0]
+            else:
+                return result
+        if hasattr(response, "text"):
+            return response.text
+        return ""
+
     class Tracer(BaseCallbackHandler):
         def __init__(self):
             self.running_nodes = {}
@@ -55,7 +66,7 @@ try:
             **kwargs: Any,
         ) -> None:
             node, token = self.running_nodes.pop(run_id.hex)
-            generations = [g.text for gg in response.generations for g in gg]
+            generations = [response_to_output(g) for gg in response.generations for g in gg]
             if len(generations) == 1:
                 node.add_output("", generations[0])
             else:
