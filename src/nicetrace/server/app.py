@@ -30,7 +30,7 @@ def create_app(reader: TraceReader, server_name):
 def start_server(
     reader: TraceReader,
     host: str = "localhost",
-    server_name: str = "localhost",
+    server_name: str | None = None,
     port: int = 4090,
     debug: bool = False,
     verbose: bool = True,
